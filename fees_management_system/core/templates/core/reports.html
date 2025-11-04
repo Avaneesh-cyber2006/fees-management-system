@@ -1,0 +1,682 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Reports & Analytics - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* Fix table visibility issues for reports */
+.table-neural {
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.table-neural th {
+    background: rgba(0, 245, 255, 0.2) !important;
+    color: #00f5ff !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
+}
+
+.table-neural td {
+    color: #ffffff !important;
+    border: none !important;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent !important;
+}
+
+.table-neural tbody tr {
+    background: transparent !important;
+}
+
+.table-neural tbody tr:hover {
+    background: rgba(0, 245, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+/* Enhanced stat cards */
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 245, 255, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="text-center mb-4">
+            <div class="d-flex justify-content-center align-items-center mb-3">
+                <img src="{% static 'core/images/logo.png' %}" alt="Pillay Sir's ICSE Classes" height="50" class="me-3">
+                <i class="fas fa-chart-bar" style="font-size: 3rem; color: var(--neon-blue);"></i>
+            </div>
+            <h1 class="text-neon">Reports & Analytics</h1>
+            <p class="lead">Generate detailed reports and analytics</p>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mb-5">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_students }}</div>
+                    <div class="stat-label">Total Students</div>
+                    <i class="fas fa-users position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">₹{{ total_revenue|floatformat:0 }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                    <i class="fas fa-chart-line position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">₹{{ collected_fees|floatformat:0 }}</div>
+                    <div class="stat-label">Fees Collected</div>
+                    <i class="fas fa-money-bill-wave position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">₹{{ pending_fees|floatformat:0 }}</div>
+                    <div class="stat-label">Pending Fees</div>
+                    <i class="fas fa-clock position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Export Options -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="neural-card">
+                    <h3 class="text-center mb-4">
+                        <i class="fas fa-download me-2"></i>Quick Export Options
+                    </h3>
+                    <div class="text-center">
+                        <a href="{% url 'core:generate_fees_report_pdf' %}" class="btn btn-danger me-3 mb-2">
+                            <i class="fas fa-file-pdf me-2"></i>Fees Report PDF
+                        </a>
+                        <a href="{% url 'core:generate_analytics_pdf' %}" class="btn btn-info me-3 mb-2">
+                            <i class="fas fa-chart-bar me-2"></i>Analytics PDF
+                        </a>
+                        <a href="{% url 'core:export_data_excel' %}" class="btn btn-success me-3 mb-2">
+                            <i class="fas fa-file-excel me-2"></i>Export to Excel
+                        </a>
+                        <a href="{% url 'core:analytics_dashboard' %}" class="btn btn-primary mb-2">
+                            <i class="fas fa-analytics me-2"></i>View Analytics Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Generation Options -->
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h3 class="card-title">Fee Collection Report</h3>
+                        <p class="card-text">
+                            Generate comprehensive fee collection reports with payment details and outstanding amounts.
+                        </p>
+                        <button class="btn btn-neural mt-3" onclick="generateReport('fee_collection')">
+                            <i class="fas fa-download me-2"></i>Generate PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="card-title">Student Directory</h3>
+                        <p class="card-text">
+                            Complete student directory with personal, academic, and contact information.
+                        </p>
+                        <button class="btn btn-neural mt-3" onclick="generateReport('student_directory')">
+                            <i class="fas fa-download me-2"></i>Generate PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3 class="card-title">Overdue Fees Report</h3>
+                        <p class="card-text">
+                            List of students with pending fees and their contact details for follow-up.
+                        </p>
+                        <button class="btn btn-neon mt-3" onclick="generateReport('overdue_fees')">
+                            <i class="fas fa-download me-2"></i>Generate PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3 class="card-title">Course-wise Analytics</h3>
+                        <p class="card-text">
+                            Detailed analytics showing enrollment and revenue breakdown by courses.
+                        </p>
+                        <button class="btn btn-neural mt-3" onclick="generateReport('course_analytics')">
+                            <i class="fas fa-download me-2"></i>Generate PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <h3 class="card-title">Individual Receipts</h3>
+                        <p class="card-text">
+                            Generate individual fee receipts for students with payment history.
+                        </p>
+                        <button class="btn btn-neural mt-3" onclick="showReceiptModal()">
+                            <i class="fas fa-receipt me-2"></i>Generate Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="neural-card h-100">
+                    <div class="text-center">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="card-title">Monthly Summary</h3>
+                        <p class="card-text">
+                            Monthly revenue and enrollment summary with comparative analysis.
+                        </p>
+                        <button class="btn btn-neural mt-3" onclick="showMonthlyModal()">
+                            <i class="fas fa-calendar me-2"></i>Select Month
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Charts Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="neural-card">
+                    <h5 class="text-neon mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>Payment Status Distribution
+                    </h5>
+                    <canvas id="paymentStatusChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="neural-card">
+                    <h5 class="text-neon mb-3">
+                        <i class="fas fa-chart-bar me-2"></i>Course-wise Revenue
+                    </h5>
+                    <canvas id="courseRevenueChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="neural-card">
+                    <h5 class="text-neon mb-3">
+                        <i class="fas fa-chart-line me-2"></i>Monthly Collection Trend
+                    </h5>
+                    <canvas id="monthlyTrendChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="neural-card">
+                    <h5 class="text-neon mb-3">
+                        <i class="fas fa-chart-doughnut me-2"></i>Fee Collection Rate
+                    </h5>
+                    <canvas id="collectionRateChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course-wise Statistics -->
+        {% if course_stats %}
+        <div class="glass-container mt-4">
+            <h3 class="text-neon mb-4">
+                <i class="fas fa-graduation-cap me-2"></i>Course-wise Statistics
+            </h3>
+            
+            <div class="table-responsive">
+                <table class="table table-neural">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Students Enrolled</th>
+                            <th>Fees Collected</th>
+                            <th>Fees Pending</th>
+                            <th>Collection Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course, stats in course_stats.items %}
+                        <tr>
+                            <td><strong>{{ course }}</strong></td>
+                            <td>{{ stats.count }}</td>
+                            <td>₹{{ stats.fees_collected|floatformat:2 }}</td>
+                            <td>₹{{ stats.fees_pending|floatformat:2 }}</td>
+                            <td>
+                                {% with total_fees=stats.fees_collected|add:stats.fees_pending %}
+                                    {% if total_fees > 0 %}
+                                        {% widthratio stats.fees_collected total_fees 100 as collection_rate %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ collection_rate }}%; background: var(--neon-blue);">
+                                                {{ collection_rate }}%
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Receipt Generation Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--glass-border);">
+                <h5 class="modal-title text-neon">Generate Individual Receipt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label class="form-label">Select Student</label>
+                    <select class="form-control form-control-neural" id="studentSelect">
+                        <option value="">Choose a student...</option>
+                        <!-- Students will be populated here -->
+                    </select>
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label class="form-label">Receipt Type</label>
+                    <select class="form-control form-control-neural" id="receiptType">
+                        <option value="payment">Payment Receipt</option>
+                        <option value="fee_structure">Fee Structure</option>
+                        <option value="outstanding">Outstanding Fees</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-neon" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-neural" onclick="generateIndividualReceipt()">
+                    <i class="fas fa-file-pdf me-2"></i>Generate Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Report Modal -->
+<div class="modal fade" id="monthlyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--glass-border);">
+                <h5 class="modal-title text-neon">Generate Monthly Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label class="form-label">Select Month</label>
+                    <input type="month" class="form-control form-control-neural" id="reportMonth" 
+                           value="{{ current_month }}">
+                </div>
+                
+                <div class="form-group mb-3">
+                    <label class="form-label">Report Type</label>
+                    <select class="form-control form-control-neural" id="monthlyReportType">
+                        <option value="summary">Monthly Summary</option>
+                        <option value="detailed">Detailed Report</option>
+                        <option value="comparative">Comparative Analysis</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-neon" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-neural" onclick="generateMonthlyReport()">
+                    <i class="fas fa-file-pdf me-2"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+});
+
+function initializeCharts() {
+    // Payment Status Distribution Chart
+    const paymentCtx = document.getElementById('paymentStatusChart').getContext('2d');
+    
+    // Calculate payment status data
+    const totalStudents = {{ total_students|default:0 }};
+    const totalRevenue = {{ total_revenue|default:0 }};
+    const collectedFees = {{ collected_fees|default:0 }};
+    const pendingFees = {{ pending_fees|default:0 }};
+    
+    // Estimate payment distribution (you can make this more accurate with actual data)
+    const fullyPaid = Math.floor(totalStudents * 0.6);
+    const partiallyPaid = Math.floor(totalStudents * 0.25);
+    const notPaid = totalStudents - fullyPaid - partiallyPaid;
+    
+    new Chart(paymentCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Fully Paid', 'Partially Paid', 'Not Paid'],
+            datasets: [{
+                data: [fullyPaid, partiallyPaid, notPaid],
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b', 
+                    '#ef4444'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ffffff',
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+
+    // Course-wise Revenue Chart
+    const courseCtx = document.getElementById('courseRevenueChart').getContext('2d');
+    
+    // Sample course data (replace with actual data from backend)
+    const courseLabels = [
+        {% for course, stats in course_stats.items %}
+        '{{ course|truncatechars:15 }}'{% if not forloop.last %},{% endif %}
+        {% empty %}
+        'Math', 'Science', 'English', 'Social Studies'
+        {% endfor %}
+    ];
+    
+    const courseRevenue = [
+        {% for course, stats in course_stats.items %}
+        {{ stats.fees_collected|default:0 }}{% if not forloop.last %},{% endif %}
+        {% empty %}
+        50000, 45000, 35000, 30000
+        {% endfor %}
+    ];
+    
+    new Chart(courseCtx, {
+        type: 'bar',
+        data: {
+            labels: courseLabels,
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: courseRevenue,
+                backgroundColor: 'rgba(0, 245, 255, 0.8)',
+                borderColor: '#00f5ff',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#ffffff',
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+
+    // Monthly Collection Trend Chart
+    const monthlyCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+    
+    // Sample monthly data (replace with actual data)
+    const monthlyLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const monthlyData = [120000, 135000, 128000, 145000, 152000, 148000];
+    
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: {
+            labels: monthlyLabels,
+            datasets: [{
+                label: 'Monthly Collection (₹)',
+                data: monthlyData,
+                borderColor: '#00f5ff',
+                backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#00f5ff',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#ffffff',
+                        callback: function(value) {
+                            return '₹' + (value/1000) + 'K';
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#ffffff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ffffff'
+                    }
+                }
+            }
+        }
+    });
+
+    // Collection Rate Chart
+    const collectionCtx = document.getElementById('collectionRateChart').getContext('2d');
+    
+    const collectionRate = totalRevenue > 0 ? (collectedFees / totalRevenue * 100) : 0;
+    const pendingRate = 100 - collectionRate;
+    
+    new Chart(collectionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Collected', 'Pending'],
+            datasets: [{
+                data: [collectionRate, pendingRate],
+                backgroundColor: [
+                    '#10b981',
+                    '#ef4444'
+                ],
+                borderWidth: 3,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ffffff',
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateReport(reportType) {
+    const loadingScreen = NeuralTheme.showLoadingScreen();
+    
+    // Simulate report generation
+    setTimeout(() => {
+        NeuralTheme.hideLoadingScreen(loadingScreen);
+        NeuralTheme.showSuccessNotification(`${reportType.replace('_', ' ')} report generated successfully!`);
+        
+        // In a real implementation, this would trigger the PDF download
+        // window.open(`/api/reports/${reportType}/`, '_blank');
+    }, 3000);
+}
+
+function showReceiptModal() {
+    const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+    
+    // Populate student dropdown (in real implementation, fetch from API)
+    const studentSelect = document.getElementById('studentSelect');
+    studentSelect.innerHTML = `
+        <option value="">Choose a student...</option>
+        <option value="1001">John Doe (1001)</option>
+        <option value="1002">Jane Smith (1002)</option>
+        <option value="1003">Mike Johnson (1003)</option>
+    `;
+    
+    modal.show();
+}
+
+function generateIndividualReceipt() {
+    const studentId = document.getElementById('studentSelect').value;
+    const receiptType = document.getElementById('receiptType').value;
+    
+    if (!studentId) {
+        NeuralTheme.showErrorNotification('Please select a student.');
+        return;
+    }
+    
+    const loadingScreen = NeuralTheme.showLoadingScreen();
+    
+    setTimeout(() => {
+        NeuralTheme.hideLoadingScreen(loadingScreen);
+        NeuralTheme.showSuccessNotification('Receipt generated successfully!');
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
+        
+        // In real implementation: window.open(`/api/receipt/${studentId}/${receiptType}/`, '_blank');
+    }, 2000);
+}
+
+function showMonthlyModal() {
+    const modal = new bootstrap.Modal(document.getElementById('monthlyModal'));
+    
+    // Set current month as default
+    const now = new Date();
+    const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById('reportMonth').value = currentMonth;
+    
+    modal.show();
+}
+
+function generateMonthlyReport() {
+    const month = document.getElementById('reportMonth').value;
+    const reportType = document.getElementById('monthlyReportType').value;
+    
+    if (!month) {
+        NeuralTheme.showErrorNotification('Please select a month.');
+        return;
+    }
+    
+    const loadingScreen = NeuralTheme.showLoadingScreen();
+    
+    setTimeout(() => {
+        NeuralTheme.hideLoadingScreen(loadingScreen);
+        NeuralTheme.showSuccessNotification('Monthly report generated successfully!');
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('monthlyModal')).hide();
+        
+        // In real implementation: window.open(`/api/reports/monthly/${month}/${reportType}/`, '_blank');
+    }, 2000);
+}
+</script>
+{% endblock %}

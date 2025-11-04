@@ -1,0 +1,603 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Message Analytics Dashboard - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Message Analytics Dashboard Styling */
+.analytics-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.analytics-card {
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 2px solid rgba(0, 245, 255, 0.3);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 245, 255, 0.3);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.1) 0%, rgba(0, 245, 255, 0.05) 100%);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 245, 255, 0.2);
+}
+
+.metric-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #00f5ff;
+    text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.metric-percentage {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.success-rate { color: #10b981; }
+.warning-rate { color: #f59e0b; }
+.danger-rate { color: #ef4444; }
+
+.chart-container {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-history-table {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.message-history-table th {
+    background: rgba(0, 245, 255, 0.2);
+    color: #00f5ff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
+}
+
+.message-history-table td {
+    color: #ffffff;
+    border: none;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+}
+
+.message-history-table tbody tr:hover {
+    background: rgba(0, 245, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-sent { background: #3b82f6; color: white; }
+.status-delivered { background: #10b981; color: white; }
+.status-read { background: #059669; color: white; }
+.status-failed { background: #ef4444; color: white; }
+.status-pending { background: #f59e0b; color: white; }
+
+.response-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.response-none { background: #6b7280; color: white; }
+.response-payment_confirmed { background: #10b981; color: white; }
+.response-query { background: #3b82f6; color: white; }
+.response-acknowledgment { background: #8b5cf6; color: white; }
+.response-complaint { background: #ef4444; color: white; }
+.response-other { background: #f59e0b; color: white; }
+
+.engagement-score {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.engagement-high { background: #10b981; color: white; }
+.engagement-medium { background: #f59e0b; color: white; }
+.engagement-low { background: #ef4444; color: white; }
+
+.date-filter-container {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.export-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.8rem 1.5rem;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.daily-chart {
+    height: 300px;
+}
+
+.response-time-chart {
+    height: 250px;
+}
+
+@media (max-width: 768px) {
+    .export-buttons {
+        flex-direction: column;
+    }
+    
+    .performance-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metric-number {
+        font-size: 2rem;
+    }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="analytics-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="text-white mb-3">
+                    <i class="fas fa-chart-line me-3" style="color: #00f5ff;"></i>
+                    Message Analytics Dashboard
+                </h1>
+                <p class="text-white mb-0 lead">
+                    Track delivery status, response analytics, and engagement metrics for WhatsApp messages
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="pulse-animation">
+                    <img src="{% static 'core/images/logo.png' %}" alt="Pillay Sir's ICSE Classes" height="80" class="mb-2">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="date-filter-container">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-white">Start Date</label>
+                <input type="date" name="start_date" class="form-control form-control-neural" 
+                       value="{{ start_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-white">End Date</label>
+                <input type="date" name="end_date" class="form-control form-control-neural" 
+                       value="{{ end_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-neural">
+                    <i class="fas fa-filter me-2"></i>Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Export Buttons -->
+    <div class="export-buttons">
+        <a href="{% url 'core:export_analytics_data' %}?start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}" 
+           class="export-btn">
+            <i class="fas fa-download"></i>Export to Excel
+        </a>
+        <button class="export-btn" onclick="generatePDFReport()">
+            <i class="fas fa-file-pdf"></i>Generate PDF Report
+        </button>
+    </div>
+
+    <!-- Overall Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ total_messages }}</div>
+                <div class="metric-label">Total Messages</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ delivered_messages }}</div>
+                <div class="metric-label">Delivered</div>
+                <div class="metric-percentage success-rate">{{ delivery_rate }}%</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ read_messages }}</div>
+                <div class="metric-label">Read</div>
+                <div class="metric-percentage success-rate">{{ read_rate }}%</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ failed_messages }}</div>
+                <div class="metric-label">Failed</div>
+                <div class="metric-percentage danger-rate">
+                    {{ failed_messages|floatformat:0 }}/{{ total_messages }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ responded_messages }}</div>
+                <div class="metric-label">Responses</div>
+                <div class="metric-percentage success-rate">{{ response_rate }}%</div>
+            </div>
+        </div>
+        <div class="col-md-2 mb-3">
+            <div class="metric-card">
+                <div class="metric-number">{{ engaged_students|length }}</div>
+                <div class="metric-label">Engaged Students</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="performance-grid">
+        <!-- Daily Performance Chart -->
+        <div class="chart-container">
+            <h4 class="text-neon mb-3">
+                <i class="fas fa-calendar-day me-2"></i>Daily Performance (Last 7 Days)
+            </h4>
+            <canvas id="dailyPerformanceChart" class="daily-chart"></canvas>
+        </div>
+
+        <!-- Message Type Performance -->
+        <div class="chart-container">
+            <h4 class="text-neon mb-3">
+                <i class="fas fa-chart-pie me-2"></i>Message Type Performance
+            </h4>
+            <canvas id="messageTypeChart" class="daily-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Response Analytics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="analytics-card">
+                <h4 class="text-neon mb-3">
+                    <i class="fas fa-reply me-2"></i>Response Type Distribution
+                </h4>
+                {% if response_stats %}
+                <div class="row">
+                    {% for stat in response_stats %}
+                    <div class="col-12 mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-white">{{ stat.label }}</span>
+                            <div>
+                                <span class="response-badge response-{{ stat.type|lower }}">
+                                    {{ stat.count }} ({{ stat.percentage|floatformat:1 }}%)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-white">No response data available for the selected period.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="analytics-card">
+                <h4 class="text-neon mb-3">
+                    <i class="fas fa-clock me-2"></i>Average Response Times
+                </h4>
+                {% if response_time_stats %}
+                <div class="row">
+                    {% for stat in response_time_stats %}
+                    <div class="col-12 mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-white">{{ stat.label }}</span>
+                            <div>
+                                <span class="text-neon">{{ stat.avg_response_hours|floatformat:1 }}h</span>
+                                <small class="text-muted">({{ stat.response_count }} responses)</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-white">No response time data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Engaged Students -->
+    {% if engaged_students %}
+    <div class="analytics-card mb-4">
+        <h4 class="text-neon mb-3">
+            <i class="fas fa-star me-2"></i>Top Engaged Students
+        </h4>
+        <div class="row">
+            {% for student in engaged_students %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center p-3" 
+                     style="background: rgba(255,255,255,0.05); border-radius: 10px;">
+                    <div>
+                        <h6 class="text-white mb-1">{{ student.student__first_name }} {{ student.student__last_name }}</h6>
+                        <small class="text-muted">Reg: {{ student.student__registration_no }}</small>
+                        <div class="mt-1">
+                            <small class="text-neon">{{ student.message_count }} messages</small>
+                            <small class="text-success ms-2">{{ student.response_count }} responses</small>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="engagement-score engagement-{% if student.engagement_score >= 70 %}high{% elif student.engagement_score >= 40 %}medium{% else %}low{% endif %}">
+                            {{ student.engagement_score|floatformat:0 }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Message History -->
+    <div class="analytics-card">
+        <h4 class="text-neon mb-3">
+            <i class="fas fa-history me-2"></i>Recent Message History
+        </h4>
+        {% if recent_messages %}
+        <div class="table-responsive">
+            <table class="table message-history-table">
+                <thead>
+                    <tr>
+                        <th>Date/Time</th>
+                        <th>Student</th>
+                        <th>Type</th>
+                        <th>Parent</th>
+                        <th>Status</th>
+                        <th>Response</th>
+                        <th>Engagement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in recent_messages %}
+                    <tr>
+                        <td>
+                            <div>{{ message.sent_timestamp|date:"M d, Y" }}</div>
+                            <small class="text-muted">{{ message.sent_timestamp|time:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="text-white">{{ message.student.full_name }}</div>
+                            <small class="text-muted">{{ message.student.registration_no }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ message.get_message_type_display }}</span>
+                        </td>
+                        <td>
+                            <div>{{ message.parent_type }}</div>
+                            <small class="text-muted">{{ message.phone_number }}</small>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ message.delivery_status|lower }}">
+                                {{ message.get_delivery_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="response-badge response-{{ message.response_type|lower }}">
+                                {{ message.get_response_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="engagement-score engagement-{% if message.engagement_score >= 70 %}high{% elif message.engagement_score >= 40 %}medium{% else %}low{% endif %}">
+                                {{ message.engagement_score|floatformat:0 }}%
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-neural" onclick="updateMessageStatus({{ message.analytics_id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-inbox" style="font-size: 3rem; color: #6b7280; margin-bottom: 1rem;"></i>
+            <p class="text-white">No message history available for the selected period.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Daily Performance Chart
+const dailyCtx = document.getElementById('dailyPerformanceChart').getContext('2d');
+new Chart(dailyCtx, {
+    type: 'line',
+    data: {
+        labels: [{% for day in daily_stats %}'{{ day.date|date:"M d" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Messages Sent',
+            data: [{% for day in daily_stats %}{{ day.messages_sent }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: '#00f5ff',
+            backgroundColor: 'rgba(0, 245, 255, 0.1)',
+            tension: 0.4
+        }, {
+            label: 'Delivery Rate (%)',
+            data: [{% for day in daily_stats %}{{ day.delivery_rate }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: '#ffffff' }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#ffffff' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                ticks: { color: '#ffffff' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                ticks: { color: '#ffffff' },
+                grid: { drawOnChartArea: false }
+            }
+        }
+    }
+});
+
+// Message Type Performance Chart
+const typeCtx = document.getElementById('messageTypeChart').getContext('2d');
+new Chart(typeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for stat in message_type_stats %}'{{ stat.label }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for stat in message_type_stats %}{{ stat.count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                '#ec4899', '#06b6d4', '#f59e0b', '#f97316', '#ef4444', '#991b1b'
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { color: '#ffffff' }
+            }
+        }
+    }
+});
+
+// Update message status function
+function updateMessageStatus(analyticsId) {
+    // This would open a modal or form to update message status
+    // For now, just show an alert
+    alert('Message status update feature - to be implemented with modal form');
+}
+
+// Generate PDF Report function
+function generatePDFReport() {
+    alert('PDF report generation - to be implemented');
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

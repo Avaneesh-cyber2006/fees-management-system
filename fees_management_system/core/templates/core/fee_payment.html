@@ -1,0 +1,280 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Fee Payment - {{ student.full_name }} - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-summary {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.payment-form {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 2rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.amount {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.amount.negative {
+    color: var(--danger-color);
+}
+
+.amount.positive {
+    color: var(--success-color);
+}
+
+.btn-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .btn-group {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="glass-header">
+            <h1><i class="fas fa-credit-card"></i> Record Fee Payment</h1>
+            <p>Record payment for {{ student.full_name }} (Registration: {{ student.registration_no }})</p>
+        </div>
+
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+            <h3><i class="fas fa-chart-line"></i> Fee Summary</h3>
+            <div class="summary-item">
+                <span>Total Fees:</span>
+                <span class="amount">₹{{ fee_details.total_fees|floatformat:2 }}</span>
+            </div>
+            <div class="summary-item">
+                <span>Fees Paid:</span>
+                <span class="amount positive">₹{{ fee_details.fees_paid|floatformat:2 }}</span>
+            </div>
+            <div class="summary-item">
+                <span>Fees Remaining:</span>
+                <span class="amount negative">₹{{ fee_details.fees_remaining|floatformat:2 }}</span>
+            </div>
+            <div class="summary-item">
+                <span>Payment Status:</span>
+                <span class="badge {% if fee_details.fees_remaining == 0 %}bg-success{% else %}bg-warning{% endif %}">
+                    {% if fee_details.fees_remaining == 0 %}
+                        Fully Paid
+                    {% else %}
+                        Pending
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        {% if fee_details.fees_remaining > 0 %}
+        <!-- Payment Form -->
+        <div class="payment-form">
+            <h3><i class="fas fa-money-bill-wave"></i> Record New Payment</h3>
+            
+            <form method="post" id="paymentForm" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.payment_amount.id_for_label }}" class="form-label">
+                                {{ form.payment_amount.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.payment_amount }}
+                            <div class="form-text">
+                                Maximum amount: ₹{{ fee_details.fees_remaining|floatformat:2 }}
+                            </div>
+                            {% if form.payment_amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.payment_amount.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.payment_date.id_for_label }}" class="form-label">
+                                {{ form.payment_date.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.payment_date }}
+                            {% if form.payment_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.payment_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                                {{ form.payment_method.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.payment_method }}
+                            {% if form.payment_method.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.payment_method.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="{{ form.remarks.id_for_label }}" class="form-label">
+                                {{ form.remarks.label }}
+                            </label>
+                            {{ form.remarks }}
+                            {% if form.remarks.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.remarks.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Amount Buttons -->
+                <div class="mb-3">
+                    <label class="form-label">Quick Amount Selection:</label>
+                    <div class="btn-group-toggle" data-toggle="buttons">
+                        {% if fee_details.fees_per_installment <= fee_details.fees_remaining %}
+                        <button type="button" class="btn btn-outline-primary btn-sm me-2" onclick="setAmount({{ fee_details.fees_per_installment }})">
+                            Per Installment (₹{{ fee_details.fees_per_installment|floatformat:2 }})
+                        </button>
+                        {% endif %}
+                        <button type="button" class="btn btn-outline-success btn-sm me-2" onclick="setAmount({{ fee_details.fees_remaining }})">
+                            Full Payment (₹{{ fee_details.fees_remaining|floatformat:2 }})
+                        </button>
+                        {% if fee_details.fees_remaining >= 1000 %}
+                        <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="setAmount(1000)">
+                            ₹1,000
+                        </button>
+                        {% endif %}
+                        {% if fee_details.fees_remaining >= 5000 %}
+                        <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="setAmount(5000)">
+                            ₹5,000
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <a href="{% url 'core:student_detail' student.registration_no %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-credit-card"></i> Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <strong>All fees have been paid!</strong> This student has no outstanding fees.
+        </div>
+        <div class="text-center">
+            <a href="{% url 'core:student_detail' student.registration_no %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Student Details
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentAmountInput = document.getElementById('{{ form.payment_amount.id_for_label }}');
+    const maxAmount = {{ fee_details.fees_remaining }};
+    
+    // Set today's date as default
+    const paymentDateInput = document.getElementById('{{ form.payment_date.id_for_label }}');
+    if (!paymentDateInput.value) {
+        const today = new Date().toISOString().split('T')[0];
+        paymentDateInput.value = today;
+    }
+    
+    // Form validation
+    const form = document.getElementById('paymentForm');
+    form.addEventListener('submit', function(event) {
+        const amount = parseFloat(paymentAmountInput.value) || 0;
+        
+        if (amount <= 0) {
+            event.preventDefault();
+            alert('Please enter a valid payment amount.');
+            return;
+        }
+        
+        if (amount > maxAmount) {
+            event.preventDefault();
+            alert(`Payment amount cannot exceed remaining fees (₹${maxAmount.toFixed(2)})`);
+            return;
+        }
+        
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+    
+    // Validate amount on input
+    paymentAmountInput.addEventListener('input', function() {
+        const amount = parseFloat(this.value) || 0;
+        if (amount > maxAmount) {
+            this.setCustomValidity(`Amount cannot exceed ₹${maxAmount.toFixed(2)}`);
+        } else if (amount <= 0) {
+            this.setCustomValidity('Please enter a valid amount');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+
+function setAmount(amount) {
+    const paymentAmountInput = document.getElementById('{{ form.payment_amount.id_for_label }}');
+    paymentAmountInput.value = amount.toFixed(2);
+    paymentAmountInput.dispatchEvent(new Event('input'));
+}
+</script>
+{% endblock %}

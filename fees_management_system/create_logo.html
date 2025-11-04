@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Generator - Pillay Sir's ICSE Classes</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a2e;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+        .logo {
+            background: linear-gradient(135deg, #00d4ff 0%, #ff00ff 50%, #00ff88 100%);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
+            to { box-shadow: 0 0 50px rgba(255, 0, 255, 0.8); }
+        }
+        .logo-icon {
+            font-size: 60px;
+            margin-right: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .logo-text {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .logo-text h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .logo-text p {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .instructions {
+            text-align: center;
+            margin-top: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #00d4ff, #ff00ff);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.3s ease;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <div class="logo" id="logoElement">
+            <div class="logo-icon">🎓</div>
+            <div class="logo-text">
+                <h1>Pillay Sir's ICSE Classes</h1>
+                <p>Excellence in Education</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h2>Logo Generator Instructions</h2>
+        <p>To create logo.png:</p>
+        <ol style="text-align: left; display: inline-block;">
+            <li>Right-click on the logo above</li>
+            <li>Select "Inspect Element" or "Inspect"</li>
+            <li>Right-click on the logo element in the inspector</li>
+            <li>Choose "Screenshot Node" or use browser screenshot tools</li>
+            <li>Save as "logo.png" in: <code>core/static/core/images/logo.png</code></li>
+        </ol>
+        <p><strong>Alternative:</strong> Use online tools like html-to-image converters</p>
+        
+        <button class="download-btn" onclick="downloadAsImage()">Generate PNG (Requires html2canvas)</button>
+        <button class="download-btn" onclick="copyToClipboard()">Copy Logo HTML</button>
+    </div>
+
+    <script>
+        function copyToClipboard() {
+            const logoHtml = document.getElementById('logoElement').outerHTML;
+            navigator.clipboard.writeText(logoHtml).then(() => {
+                alert('Logo HTML copied to clipboard!');
+            });
+        }
+        
+        function downloadAsImage() {
+            alert('To download as PNG:\n1. Install html2canvas library\n2. Or use browser screenshot tools\n3. Or use online HTML to PNG converters');
+        }
+    </script>
+</body>
+</html>

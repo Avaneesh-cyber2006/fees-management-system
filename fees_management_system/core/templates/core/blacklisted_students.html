@@ -1,0 +1,359 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Blacklisted Students - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+.overdue-highlight {
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(239, 68, 68, 0.05)) !important;
+    border-left: 4px solid #dc2626 !important;
+}
+
+.severe-overdue {
+    background: linear-gradient(135deg, rgba(153, 27, 27, 0.2), rgba(185, 28, 28, 0.1)) !important;
+    border-left: 4px solid #991b1b !important;
+}
+
+.days-overdue-badge {
+    font-weight: bold;
+    padding: 0.5rem 0.75rem;
+    border-radius: 20px;
+}
+
+.mark-paid-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.mark-paid-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.blacklist-stats {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="glass-container mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="text-neon mb-3">
+                    <i class="fas fa-exclamation-triangle me-3"></i>
+                    Blacklisted Students
+                </h1>
+                <p class="lead mb-0">
+                    Students with overdue fee payments requiring immediate attention.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="blacklist-stats text-center">
+                    <h3 class="text-danger mb-1">{{ total_blacklisted }}</h3>
+                    <small class="text-muted">Students Overdue</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blacklisted Students Table -->
+    <div class="glass-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-neon mb-0">
+                <i class="fas fa-list me-2"></i>Overdue Students List
+            </h3>
+            <div>
+                <button class="btn btn-neural me-2" onclick="refreshList()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        {% if blacklisted_students %}
+        <div class="table-responsive">
+            <table class="table table-neural">
+                <thead>
+                    <tr>
+                        <th>Registration No</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Branch</th>
+                        <th>Due Date</th>
+                        <th>Days Overdue</th>
+                        <th>Amount Pending</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in blacklisted_students %}
+                    <tr class="{% if item.days_overdue > 10 %}severe-overdue{% else %}overdue-highlight{% endif %}" 
+                        id="student-row-{{ item.student.registration_no }}">
+                        <td>
+                            <strong>{{ item.student.registration_no }}</strong>
+                        </td>
+                        <td>
+                            <div>
+                                <strong>{{ item.student.full_name }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Admitted: {{ item.student.date_of_admission|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.academic_info %}
+                                <span class="badge bg-info">{{ item.academic_info.enrolled_course }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.academic_info and item.academic_info.branch_code %}
+                                {{ item.academic_info.branch_code.branch_name }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.next_due_date %}
+                                <span class="text-danger">
+                                    <i class="fas fa-calendar-times me-1"></i>
+                                    {{ item.next_due_date|date:"M d, Y" }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">No due date</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge days-overdue-badge {% if item.days_overdue > 10 %}bg-danger{% elif item.days_overdue > 5 %}bg-warning text-dark{% else %}bg-warning text-dark{% endif %}">
+                                {{ item.days_overdue }} day{{ item.days_overdue|pluralize }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="text-danger">₹{{ item.fee_details.fees_remaining|floatformat:0 }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                of ₹{{ item.fee_details.total_fees|floatformat:0 }}
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical" role="group">
+                                <button class="btn btn-sm mark-paid-btn mb-1" 
+                                        data-registration-no="{{ item.student.registration_no }}"
+                                        data-student-name="{{ item.student.full_name|escapejs }}"
+                                        onclick="markAsPaid(this.dataset.registrationNo, this.dataset.studentName)">
+                                    <i class="fas fa-check me-1"></i>Mark as Paid
+                                </button>
+                                <a href="{% url 'core:student_detail' item.student.registration_no %}" 
+                                   class="btn btn-sm btn-outline-light">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number text-danger">{{ total_blacklisted }}</div>
+                    <div class="stat-label">Total Overdue</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number text-warning" id="severe-count">
+                        0
+                    </div>
+                    <div class="stat-label">Severely Overdue (>10 days)</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-number text-info" id="total-pending">
+                        ₹0
+                    </div>
+                    <div class="stat-label">Total Pending Amount</div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle text-success" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+            <h3 class="text-success mb-3">Great News!</h3>
+            <p class="text-muted mb-4">No students are currently blacklisted. All fees are up to date!</p>
+            <a href="{% url 'core:dashboard' %}" class="btn btn-neural">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Calculate statistics on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateStatistics();
+});
+
+function calculateStatistics() {
+    let severeCount = 0;
+    let totalPending = 0;
+    
+    // Get all table rows with student data
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        // Check if row has severe-overdue class (>10 days)
+        if (row.classList.contains('severe-overdue')) {
+            severeCount++;
+        }
+        
+        // Extract pending amount from the row
+        const pendingCell = row.querySelector('td:nth-child(7) strong');
+        if (pendingCell) {
+            const pendingText = pendingCell.textContent.replace('₹', '').replace(',', '');
+            const pendingAmount = parseFloat(pendingText) || 0;
+            totalPending += pendingAmount;
+        }
+    });
+    
+    // Update the statistics
+    const severeCountElement = document.getElementById('severe-count');
+    const totalPendingElement = document.getElementById('total-pending');
+    
+    if (severeCountElement) {
+        severeCountElement.textContent = severeCount;
+    }
+    
+    if (totalPendingElement) {
+        totalPendingElement.textContent = '₹' + totalPending.toLocaleString('en-IN');
+    }
+}
+
+function markAsPaid(registrationNo, studentName) {
+    if (!confirm(`Are you sure you want to mark ${studentName} as fully paid? This will set their remaining fees to ₹0.`)) {
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    button.disabled = true;
+    
+    fetch('{% url "core:mark_as_paid" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            registration_no: registrationNo
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove the row from the table
+            const row = document.getElementById(`student-row-${registrationNo}`);
+            if (row) {
+                row.style.transition = 'all 0.5s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100%)';
+                
+                setTimeout(() => {
+                    row.remove();
+                    
+                    // Recalculate statistics after removing the row
+                    calculateStatistics();
+                    
+                    // Check if table is now empty
+                    const tbody = document.querySelector('.table-neural tbody');
+                    if (tbody && tbody.children.length === 0) {
+                        location.reload(); // Reload to show the "no students" message
+                    }
+                }, 500);
+            }
+            
+            // Show success message
+            showNotification('success', `✅ ${data.student_name} has been marked as paid!`);
+        } else {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            showNotification('error', `❌ Error: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        showNotification('error', `❌ An error occurred: ${error.message}`);
+        console.error('Error:', error);
+    });
+}
+
+function refreshList() {
+    // Recalculate statistics before reload
+    calculateStatistics();
+    location.reload();
+}
+
+function showNotification(type, message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

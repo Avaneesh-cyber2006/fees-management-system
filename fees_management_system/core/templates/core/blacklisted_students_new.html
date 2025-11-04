@@ -1,0 +1,337 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Blacklisted Students - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blacklist-card {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border-radius: 15px;
+        color: white;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    
+    .blacklist-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(231, 76, 60, 0.3);
+    }
+    
+    .installment-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .overdue-badge {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: white;
+        padding: 0.3em 0.8em;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        animation: pulse 2s infinite;
+    }
+    
+    .pending-badge {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 0.3em 0.8em;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .stats-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .contact-info {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-contact {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-contact:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state i {
+        color: #27ae60;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Stats -->
+    <div class="stats-header">
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="mb-0">🚫 Blacklisted Students</h2>
+                <p class="mb-0 opacity-75">Students with pending installments</p>
+            </div>
+            <div class="col-md-6">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3 class="mb-0">{{ total_blacklisted }}</h3>
+                        <small>Blacklisted Students</small>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="mb-0">
+                            {% if student_data %}
+                                ₹{{ student_data|length|add:0 }}
+                            {% else %}
+                                ₹0
+                            {% endif %}
+                        </h3>
+                        <small>Total Overdue</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if student_data %}
+        <!-- Blacklisted Students List -->
+        <div class="row">
+            {% for data in student_data %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="blacklist-card">
+                    <div class="card-body p-4">
+                        <!-- Student Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1">{{ data.student.full_name }}</h5>
+                                <p class="mb-0 opacity-75">Reg: {{ data.student.registration_no }}</p>
+                                {% if data.student.academicinfo %}
+                                <small class="opacity-75">{{ data.student.academicinfo.enrolled_course }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                {% if data.days_overdue > 0 %}
+                                <div class="overdue-badge">
+                                    {{ data.days_overdue }} days overdue
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Total Overdue Amount -->
+                        <div class="text-center mb-3">
+                            <h3 class="mb-0">₹{{ data.total_overdue_amount|floatformat:2 }}</h3>
+                            <small class="opacity-75">Total Overdue Amount</small>
+                        </div>
+
+                        <!-- Pending Installments -->
+                        <div class="mb-3">
+                            <h6 class="mb-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Pending Installments ({{ data.pending_installments|length }})
+                            </h6>
+                            {% for installment in data.pending_installments %}
+                            <div class="installment-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Installment {{ installment.installment_no }}</strong>
+                                        <br>
+                                        <small>Due: {{ installment.due_date|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>₹{{ installment.amount|floatformat:2 }}</strong>
+                                        <br>
+                                        <span class="pending-badge">Pending</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Overdue Installments -->
+                        {% if data.overdue_installments %}
+                        <div class="mb-3">
+                            <h6 class="mb-2">
+                                <i class="fas fa-clock me-1"></i>
+                                Overdue Installments ({{ data.overdue_installments|length }})
+                            </h6>
+                            {% for installment in data.overdue_installments %}
+                            {% if installment.is_overdue %}
+                            <div class="installment-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Installment {{ installment.installment_no }}</strong>
+                                        <br>
+                                        <small>Due: {{ installment.due_date|date:"d M Y" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>₹{{ installment.amount|floatformat:2 }}</strong>
+                                        <br>
+                                        <span class="overdue-badge">{{ installment.days_overdue }} days</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Contact Information -->
+                        {% if data.student.parentinfo %}
+                        <div class="contact-info">
+                            <h6 class="mb-2">
+                                <i class="fas fa-phone me-1"></i>
+                                Contact Information
+                            </h6>
+                            <div class="row">
+                                {% if data.student.parentinfo.father_mobile %}
+                                <div class="col-6">
+                                    <small>Father:</small><br>
+                                    <strong>{{ data.student.parentinfo.father_mobile }}</strong>
+                                </div>
+                                {% endif %}
+                                {% if data.student.parentinfo.mother_mobile %}
+                                <div class="col-6">
+                                    <small>Mother:</small><br>
+                                    <strong>{{ data.student.parentinfo.mother_mobile }}</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="mt-3 text-center">
+                                {% if data.student.parentinfo.father_mobile %}
+                                <a href="https://wa.me/{{ data.student.parentinfo.father_mobile|slice:'1:' }}" 
+                                   target="_blank" class="btn btn-contact btn-sm me-2">
+                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp Father
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'core:student_detail' data.student.registration_no %}" 
+                                   class="btn btn-contact btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{% url 'core:installment_management' %}" class="btn btn-primary btn-lg me-3" style="border-radius: 25px;">
+                    <i class="fas fa-cog me-2"></i>Manage Installments
+                </a>
+                
+                <button class="btn btn-warning btn-lg" onclick="updateAllOverdueStatuses()" style="border-radius: 25px;">
+                    <i class="fas fa-sync-alt me-2"></i>Update All Overdue
+                </button>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-check-circle fa-5x"></i>
+            <h3 class="text-success">Excellent! No Blacklisted Students</h3>
+            <p class="text-muted mb-4">All students are up to date with their fee payments.</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:installment_management' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-list me-2"></i>View All Installments
+                        </a>
+                        
+                        <a href="{% url 'core:students_list' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-users me-2"></i>View All Students
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function updateAllOverdueStatuses() {
+    if (confirm('This will update all overdue installments to "Pending" status. Continue?')) {
+        fetch('/api/update-overdue-statuses/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating overdue statuses.');
+        });
+    }
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
