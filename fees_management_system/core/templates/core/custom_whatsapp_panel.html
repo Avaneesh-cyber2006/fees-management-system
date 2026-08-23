@@ -1,0 +1,465 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Custom WhatsApp Messages - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+.message-composer {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.student-selector {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.student-checkbox {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.student-checkbox:hover {
+    background: rgba(0, 245, 255, 0.1);
+}
+
+.message-textarea {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    color: white;
+    border-radius: 10px;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.message-textarea:focus {
+    background: rgba(0, 0, 0, 0.7);
+    border-color: #00f5ff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 245, 255, 0.25);
+    color: white;
+}
+
+.file-upload-area {
+    border: 2px dashed rgba(0, 245, 255, 0.3);
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: #00f5ff;
+    background: rgba(0, 245, 255, 0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: #00f5ff;
+    background: rgba(0, 245, 255, 0.1);
+}
+
+.recent-messages {
+    background: rgba(15, 23, 42, 0.8);
+    border-radius: 15px;
+    padding: 1.5rem;
+}
+
+.message-log-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #00f5ff;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    border: none;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.send-btn:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+}
+
+.recipient-toggle {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-radius: 10px;
+    padding: 0.5rem;
+}
+
+.recipient-toggle .btn {
+    border-radius: 8px;
+    margin: 0.2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="glass-container mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="text-neon mb-3">
+                    <i class="fab fa-whatsapp me-3"></i>
+                    Custom WhatsApp Messages
+                </h1>
+                <p class="lead mb-0">
+                    Send personalized messages and media to students via WhatsApp.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'core:whatsapp_panel' %}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-robot me-2"></i>Auto Reminders
+                </a>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-neural">
+                    <i class="fas fa-arrow-left me-2"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Message Composer -->
+        <div class="col-lg-8">
+            <div class="message-composer">
+                <h3 class="text-neon mb-4">
+                    <i class="fas fa-edit me-2"></i>Compose Message
+                </h3>
+
+                <form id="customMessageForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Recipient Selection -->
+                    <div class="mb-4">
+                        <label class="form-label text-neon">
+                            <i class="fas fa-users me-2"></i>Recipients
+                        </label>
+                        <div class="recipient-toggle mb-3">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="recipient_type" id="selected_students" value="selected" checked>
+                                <label class="btn btn-outline-light" for="selected_students">Selected Students</label>
+                                
+                                <input type="radio" class="btn-check" name="recipient_type" id="all_students" value="all">
+                                <label class="btn btn-outline-light" for="all_students">All Students</label>
+                            </div>
+                        </div>
+
+                        <!-- Student Selection (shown when "Selected Students" is chosen) -->
+                        <div id="studentSelector" class="student-selector">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                    <label class="form-check-label fw-bold" for="selectAll">
+                                        Select All Students
+                                    </label>
+                                </div>
+                                <hr style="border-color: rgba(255, 255, 255, 0.2);">
+                            </div>
+                            
+                            {% for student in all_students %}
+                            <div class="student-checkbox">
+                                <div class="form-check">
+                                    <input class="form-check-input student-check" type="checkbox" 
+                                           name="selected_students[]" value="{{ student.registration_no }}" 
+                                           id="student_{{ student.registration_no }}">
+                                    <label class="form-check-label" for="student_{{ student.registration_no }}">
+                                        <strong>{{ student.full_name }}</strong> ({{ student.registration_no }})
+                                        <br>
+                                        <small class="text-muted">
+                                            {% if student.academicinfo %}{{ student.academicinfo.enrolled_course }}{% endif %}
+                                            {% if student.parentinfo and student.parentinfo.father_mobile %}
+                                                | {{ student.parentinfo.father_mobile }}
+                                            {% endif %}
+                                        </small>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Message Text -->
+                    <div class="mb-4">
+                        <label for="messageText" class="form-label text-neon">
+                            <i class="fas fa-comment me-2"></i>Message Text
+                        </label>
+                        <textarea class="form-control message-textarea" id="messageText" name="message_text" 
+                                  placeholder="Type your custom message here..." required></textarea>
+                        <div class="form-text text-muted mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            You can use placeholders like {Student_Name}, {Father_Name}, {Course}, etc.
+                        </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label class="form-label text-neon">
+                            <i class="fas fa-paperclip me-2"></i>Attachment (Optional)
+                        </label>
+                        <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                            <input type="file" id="fileInput" name="attachment" accept="image/*,application/pdf" style="display: none;">
+                            <i class="fas fa-cloud-upload-alt fa-2x mb-2 text-muted"></i>
+                            <p class="mb-1">Click to select a file or drag and drop</p>
+                            <small class="text-muted">Supported: Images (JPG, PNG, GIF) and PDF files</small>
+                            <div id="selectedFile" class="mt-2" style="display: none;">
+                                <i class="fas fa-file me-2"></i>
+                                <span id="fileName"></span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeFile()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Send Button -->
+                    <div class="text-center">
+                        <button type="submit" class="send-btn">
+                            <i class="fab fa-whatsapp me-2"></i>Send WhatsApp Messages
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Messages & Statistics -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="glass-container mb-4">
+                <h4 class="text-neon mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>Quick Stats
+                </h4>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="stat-number">{{ all_students|length }}</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-number">{{ recent_messages|length }}</div>
+                        <div class="stat-label">Recent Messages</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Messages -->
+            <div class="recent-messages">
+                <h4 class="text-neon mb-3">
+                    <i class="fas fa-history me-2"></i>Recent Messages
+                </h4>
+                
+                {% if recent_messages %}
+                    {% for message in recent_messages %}
+                    <div class="message-log-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <strong class="text-light">{{ message.student.full_name }}</strong>
+                            <small class="text-muted">{{ message.timestamp|date:"M d, H:i" }}</small>
+                        </div>
+                        <p class="mb-2 text-muted small">{{ message.message_text|truncatechars:100 }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if message.attachment %}
+                                <small class="text-info">
+                                    <i class="fas fa-paperclip me-1"></i>Has attachment
+                                </small>
+                            {% else %}
+                                <span></span>
+                            {% endif %}
+                            <span class="badge {% if message.sent_status == 'SUCCESS' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ message.sent_status }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox text-muted fa-2x mb-2"></i>
+                        <p class="text-muted">No recent messages</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recipientRadios = document.querySelectorAll('input[name="recipient_type"]');
+    const studentSelector = document.getElementById('studentSelector');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const studentCheckboxes = document.querySelectorAll('.student-check');
+    const fileInput = document.getElementById('fileInput');
+    const fileUploadArea = document.querySelector('.file-upload-area');
+
+    // Handle recipient type change
+    recipientRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'all') {
+                studentSelector.style.display = 'none';
+            } else {
+                studentSelector.style.display = 'block';
+            }
+        });
+    });
+
+    // Handle select all checkbox
+    selectAllCheckbox.addEventListener('change', function() {
+        studentCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Handle individual student checkboxes
+    studentCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const allChecked = Array.from(studentCheckboxes).every(cb => cb.checked);
+            const noneChecked = Array.from(studentCheckboxes).every(cb => !cb.checked);
+            
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+        });
+    });
+
+    // File upload handling
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            showSelectedFile(this.files[0]);
+        }
+    });
+
+    // Drag and drop handling
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            showSelectedFile(files[0]);
+        }
+    });
+
+    // Form submission
+    document.getElementById('customMessageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendCustomMessage();
+    });
+});
+
+function showSelectedFile(file) {
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('selectedFile').style.display = 'block';
+}
+
+function removeFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('selectedFile').style.display = 'none';
+}
+
+function sendCustomMessage() {
+    const form = document.getElementById('customMessageForm');
+    const formData = new FormData(form);
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending Messages...';
+    submitBtn.disabled = true;
+    
+    fetch('{% url "core:send_custom_whatsapp" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        if (data.success) {
+            showNotification('success', `✅ Messages sent successfully!\nSent: ${data.sent_count}, Failed: ${data.failed_count}`);
+            
+            // Reset form
+            form.reset();
+            document.getElementById('selectedFile').style.display = 'none';
+            document.getElementById('selectAll').checked = false;
+            document.getElementById('selectAll').indeterminate = false;
+            
+            // Refresh recent messages after a delay
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showNotification('error', `❌ Error: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        showNotification('error', `❌ An error occurred: ${error.message}`);
+        console.error('Error:', error);
+    });
+}
+
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 350px; white-space: pre-line;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 8000);
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

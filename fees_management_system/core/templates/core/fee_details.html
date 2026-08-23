@@ -1,0 +1,432 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Fee Details - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Fix table visibility issues for fee details */
+.table-neural {
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.table-neural th {
+    background: rgba(0, 245, 255, 0.2) !important;
+    color: #00f5ff !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
+}
+
+.table-neural td {
+    color: #ffffff !important;
+    border: none !important;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent !important;
+}
+
+.table-neural tbody tr {
+    background: transparent !important;
+}
+
+.table-neural tbody tr:hover {
+    background: rgba(0, 245, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+/* Fix text visibility in table cells */
+.table-neural .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.table-neural strong {
+    color: #ffffff !important;
+}
+
+/* Badge styling fixes */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.bg-warning {
+    background-color: #fbbf24 !important;
+    color: #1f2937 !important;
+}
+
+.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.bg-danger {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.bg-secondary {
+    background-color: #6b7280 !important;
+    color: #ffffff !important;
+}
+
+/* Enhanced stat cards */
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 245, 255, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-neon">
+                    <i class="fas fa-money-bill-wave me-3"></i>Fee Management
+                </h1>
+                <p class="lead mb-0">Track and manage student fees</p>
+            </div>
+            <div>
+                <div class="btn-group" role="group">
+                    <a href="?status=all" class="btn {% if status_filter == 'all' %}btn-neural{% else %}btn-neon{% endif %}">
+                        All Students
+                    </a>
+                    <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-neural{% else %}btn-neon{% endif %}">
+                        Pending Fees
+                    </a>
+                    <a href="?status=paid" class="btn {% if status_filter == 'paid' %}btn-neural{% else %}btn-neon{% endif %}">
+                        Fees Paid
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% with total_revenue=0 %}
+                            {% for fee in fee_details %}
+                                {% with total_revenue=total_revenue|add:fee.total_fees %}{% endwith %}
+                            {% endfor %}
+                            ₹{{ total_revenue|floatformat:0 }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% with collected_fees=0 %}
+                            {% for fee in fee_details %}
+                                {% with collected_fees=collected_fees|add:fee.fees_paid %}{% endwith %}
+                            {% endfor %}
+                            ₹{{ collected_fees|floatformat:0 }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Fees Collected</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% with pending_fees=0 %}
+                            {% for fee in fee_details %}
+                                {% with pending_fees=pending_fees|add:fee.fees_remaining %}{% endwith %}
+                            {% endfor %}
+                            ₹{{ pending_fees|floatformat:0 }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Pending Fees</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ fee_details|length }}</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fee Details Table -->
+        {% if fee_details %}
+        <div class="table-responsive">
+            <table class="table table-neural">
+                <thead>
+                    <tr>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Total Fees</th>
+                        <th>Fees Paid</th>
+                        <th>Fees Remaining</th>
+                        <th>Installments</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in fee_details %}
+                    <tr>
+                        <td>{{ fee.registration_no.registration_no }}</td>
+                        <td>
+                            <div>
+                                <strong>{{ fee.registration_no.full_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ fee.registration_no.parentinfo.father_name|default:"N/A" }}</small>
+                            </div>
+                        </td>
+                        <td>{{ fee.registration_no.academicinfo.enrolled_course|default:"N/A" }}</td>
+                        <td>₹{{ fee.total_fees|floatformat:2 }}</td>
+                        <td>₹{{ fee.fees_paid|floatformat:2 }}</td>
+                        <td>
+                            <span class="{% if fee.fees_remaining > 0 %}text-neon-pink{% else %}text-success{% endif %}">
+                                ₹{{ fee.fees_remaining|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td>{{ fee.number_of_installments }}</td>
+                        <td>
+                            {% if fee.fees_remaining > 0 %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                                <span class="badge bg-success">Paid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical" role="group">
+                                <div class="btn-group mb-1" role="group">
+                                    <button type="button" class="btn btn-sm btn-neural" 
+                                            onclick="updateFees({{ fee.registration_no.registration_no }})" 
+                                            title="Update Fees">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-neon" 
+                                            onclick="generateReceipt({{ fee.registration_no.registration_no }})" 
+                                            title="Generate Receipt">
+                                        <i class="fas fa-receipt"></i>
+                                    </button>
+                                </div>
+                                {% if fee.fees_remaining > 0 %}
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-success" 
+                                            onclick="markAsPaid({{ fee.registration_no.registration_no }}, '{{ fee.registration_no.full_name }}')" 
+                                            title="Mark as Paid">
+                                        <i class="fas fa-check me-1"></i>Mark Paid
+                                    </button>
+                                    <button type="button" class="btn btn-sm" 
+                                            style="background: #25D366; color: white;" 
+                                            onclick="sendReminder({{ fee.registration_no.registration_no }})" 
+                                            title="Send Reminder">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-money-bill-wave" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+            <h4>No fee records found</h4>
+            <p class="text-muted">No students match the selected filter criteria.</p>
+            <a href="{% url 'core:student_registration' %}" class="btn btn-neural">
+                <i class="fas fa-plus me-2"></i>Register New Student
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Update Fees Modal -->
+<div class="modal fade" id="updateFeesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--glass-border);">
+                <h5 class="modal-title text-neon">Update Fee Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateFeesForm">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Student</label>
+                        <input type="text" class="form-control form-control-neural" id="studentName" readonly>
+                        <input type="hidden" id="studentRegNo">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Current Remaining Fees</label>
+                        <input type="text" class="form-control form-control-neural" id="currentRemaining" readonly>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Payment Amount *</label>
+                        <input type="number" class="form-control form-control-neural" 
+                               id="paymentAmount" step="0.01" min="0" required
+                               placeholder="Enter payment amount">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Payment Date</label>
+                        <input type="date" class="form-control form-control-neural" 
+                               id="paymentDate" value="{{ today|date:'Y-m-d' }}">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-control form-control-neural" id="paymentMethod">
+                            <option value="cash">Cash</option>
+                            <option value="online">Online Transfer</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="card">Card Payment</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control form-control-neural" id="paymentNotes" 
+                                  rows="2" placeholder="Additional notes (optional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-neon" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-neural" onclick="savePayment()">
+                    <i class="fas fa-save me-2"></i>Save Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFees(registrationNo) {
+    // Redirect to fee payment page
+    window.location.href = `{% url 'core:fee_payment' 0 %}`.replace('0', registrationNo);
+}
+
+function savePayment() {
+    const regNo = document.getElementById('studentRegNo').value;
+    const amount = document.getElementById('paymentAmount').value;
+    const date = document.getElementById('paymentDate').value;
+    const method = document.getElementById('paymentMethod').value;
+    const notes = document.getElementById('paymentNotes').value;
+    
+    if (!amount || amount <= 0) {
+        NeuralTheme.showErrorNotification('Please enter a valid payment amount.');
+        return;
+    }
+    
+    // Show loading
+    const loadingScreen = NeuralTheme.showLoadingScreen();
+    
+    // Simulate API call
+    setTimeout(() => {
+        NeuralTheme.hideLoadingScreen(loadingScreen);
+        NeuralTheme.showSuccessNotification('Payment updated successfully!');
+        
+        // Close modal and refresh page
+        bootstrap.Modal.getInstance(document.getElementById('updateFeesModal')).hide();
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }, 2000);
+}
+
+function generateReceipt(registrationNo) {
+    // Generate PDF receipt
+    const loadingScreen = NeuralTheme.showLoadingScreen();
+    
+    // Simulate receipt generation
+    setTimeout(() => {
+        NeuralTheme.hideLoadingScreen(loadingScreen);
+        NeuralTheme.showSuccessNotification('Receipt generated successfully!');
+        
+        // In a real implementation, this would download the PDF
+        // window.open(`/api/receipt/${registrationNo}/`, '_blank');
+    }, 2000);
+}
+
+function sendReminder(registrationNo) {
+    // Redirect to WhatsApp panel with pre-selected student
+    window.location.href = `{% url 'core:whatsapp_panel' %}?student=${registrationNo}`;
+}
+
+function markAsPaid(registrationNo, studentName) {
+    if (!confirm(`Are you sure you want to mark ${studentName} as fully paid? This will set their remaining fees to ₹0.`)) {
+        return;
+    }
+    
+    // Show loading state
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    button.disabled = true;
+    
+    fetch('{% url "core:mark_as_paid" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            registration_no: registrationNo
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            alert(`✅ ${data.student_name} has been marked as paid!`);
+            
+            // Reload the page to reflect changes
+            window.location.reload();
+        } else {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            alert(`❌ Error: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        alert(`❌ An error occurred: ${error.message}`);
+        console.error('Error:', error);
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

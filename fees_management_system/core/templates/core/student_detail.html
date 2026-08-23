@@ -1,0 +1,527 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ student.full_name }} - Student Details{% endblock %}
+
+{% block extra_css %}
+<style>
+.installment-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.installment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
+}
+
+.installment-amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--neon-cyan);
+    margin: 0.5rem 0;
+}
+
+.installment-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.installment-card h5 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container">
+    <div class="glass-container">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-neon">
+                    <i class="fas fa-user me-3"></i>{{ student.full_name }}
+                </h1>
+                <p class="lead mb-0">Registration No: {{ student.registration_no }}</p>
+            </div>
+            <div>
+                <a href="{% url 'core:students_list' %}" class="btn btn-neon">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Students
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Personal Information -->
+            <div class="col-md-6 mb-4">
+                <div class="neural-card h-100">
+                    <h3 class="card-title">
+                        <i class="fas fa-user me-2 text-neon"></i>Personal Information
+                    </h3>
+                    <div class="card-text">
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Full Name:</strong></div>
+                            <div class="col-sm-7">{{ student.full_name }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Gender:</strong></div>
+                            <div class="col-sm-7">{{ student.get_gender_display }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Date of Birth:</strong></div>
+                            <div class="col-sm-7">{{ student.date_of_birth|date:"F d, Y" }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Admission Date:</strong></div>
+                            <div class="col-sm-7">{{ student.date_of_admission|date:"F d, Y" }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Address:</strong></div>
+                            <div class="col-sm-7">{{ student.address|default:"Not provided" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Information -->
+            <div class="col-md-6 mb-4">
+                <div class="neural-card h-100">
+                    <h3 class="card-title">
+                        <i class="fas fa-users me-2 text-neon"></i>Parent Information
+                    </h3>
+                    <div class="card-text">
+                        {% if parent_info %}
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Father's Name:</strong></div>
+                            <div class="col-sm-7">{{ parent_info.father_name }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Mother's Name:</strong></div>
+                            <div class="col-sm-7">{{ parent_info.mother_name }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Father's Occupation:</strong></div>
+                            <div class="col-sm-7">{{ parent_info.father_occupation|default:"Not provided" }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Mother's Occupation:</strong></div>
+                            <div class="col-sm-7">{{ parent_info.mother_occupation|default:"Not provided" }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Father's Mobile:</strong></div>
+                            <div class="col-sm-7">
+                                {% if parent_info.father_mobile %}
+                                    <a href="tel:{{ parent_info.father_mobile }}" class="text-neon">
+                                        <i class="fas fa-phone me-1"></i>{{ parent_info.father_mobile }}
+                                    </a>
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Mother's Mobile:</strong></div>
+                            <div class="col-sm-7">
+                                {% if parent_info.mother_mobile %}
+                                    <a href="tel:{{ parent_info.mother_mobile }}" class="text-neon">
+                                        <i class="fas fa-phone me-1"></i>{{ parent_info.mother_mobile }}
+                                    </a>
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Parent information not available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information -->
+            <div class="col-md-6 mb-4">
+                <div class="neural-card h-100">
+                    <h3 class="card-title">
+                        <i class="fas fa-graduation-cap me-2 text-neon"></i>Academic Information
+                    </h3>
+                    <div class="card-text">
+                        {% if academic_info %}
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Course:</strong></div>
+                            <div class="col-sm-7">{{ academic_info.enrolled_course }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Branch:</strong></div>
+                            <div class="col-sm-7">{{ academic_info.branch_code.branch_name }} ({{ academic_info.branch_code.branch_location }})</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Previous Exam %:</strong></div>
+                            <div class="col-sm-7">
+                                {% if academic_info.percentage_previous_exam %}
+                                    {{ academic_info.percentage_previous_exam }}%
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>School Name:</strong></div>
+                            <div class="col-sm-7">{{ academic_info.school_name|default:"Not provided" }}</div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Academic information not available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fee Information -->
+            <div class="col-md-6 mb-4">
+                <div class="neural-card h-100">
+                    <h3 class="card-title">
+                        <i class="fas fa-money-bill-wave me-2 text-neon"></i>Fee Information
+                    </h3>
+                    <div class="card-text">
+                        {% if fee_details %}
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Total Fees:</strong></div>
+                            <div class="col-sm-7">₹{{ fee_details.total_fees|floatformat:2 }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Fees Paid:</strong></div>
+                            <div class="col-sm-7 text-success">₹{{ fee_details.fees_paid|floatformat:2 }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Fees Remaining:</strong></div>
+                            <div class="col-sm-7 {% if fee_details.fees_remaining > 0 %}text-neon-pink{% else %}text-success{% endif %}">
+                                ₹{{ fee_details.fees_remaining|floatformat:2 }}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Installments:</strong></div>
+                            <div class="col-sm-7">{{ fee_details.number_of_installments }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Per Installment:</strong></div>
+                            <div class="col-sm-7">₹{{ fee_details.fees_per_installment|floatformat:2 }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>Status:</strong></div>
+                            <div class="col-sm-7">
+                                {% if fee_details.fees_remaining > 0 %}
+                                    <span class="badge bg-warning">₹{{ fee_details.fees_remaining }} Pending</span>
+                                {% else %}
+                                    <span class="badge bg-success">Fully Paid</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Fee information not available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installment Details -->
+            {% if fee_details %}
+            <div class="col-12 mb-4">
+                <div class="neural-card">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt me-2 text-neon"></i>Installment Details
+                        <span class="badge bg-info ms-2">{{ installments|length }} Installment{{ installments|length|pluralize }}</span>
+                    </h3>
+                    <div class="card-text">
+                        {% if installments %}
+                        <div class="row">
+                            {% for installment in installments %}
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                                <div class="installment-card">
+                                    <h5 class="text-neon">
+                                        {% if installment.installment_no == 1 %}First
+                                        {% elif installment.installment_no == 2 %}Second
+                                        {% elif installment.installment_no == 3 %}Third
+                                        {% elif installment.installment_no == 4 %}Fourth
+                                        {% elif installment.installment_no == 5 %}Fifth
+                                        {% elif installment.installment_no == 6 %}Sixth
+                                        {% elif installment.installment_no == 7 %}Seventh
+                                        {% elif installment.installment_no == 8 %}Eighth
+                                        {% elif installment.installment_no == 9 %}Ninth
+                                        {% elif installment.installment_no == 10 %}Tenth
+                                        {% else %}{{ installment.installment_no }}th
+                                        {% endif %}
+                                        Installment
+                                    </h5>
+                                    <div class="installment-amount">₹{{ installment.amount|floatformat:2 }}</div>
+                                    <div class="installment-date">
+                                        <i class="fas fa-calendar me-1"></i>Due: {{ installment.due_date|date:"M d, Y" }}
+                                        {% load tz %}
+                                        {% now "Y-m-d" as today %}
+                                        {% if installment.due_date|date:"Y-m-d" < today %}
+                                            <span class="badge bg-danger ms-2">Overdue</span>
+                                        {% elif installment.due_date|date:"Y-m-d" == today %}
+                                            <span class="badge bg-warning ms-2">Due Today</span>
+                                        {% else %}
+                                            <span class="badge bg-info ms-2">Upcoming</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mt-2">
+                                        {% if installment.status == 'Paid' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Paid
+                                                {% if installment.paid_date %}
+                                                    <br><small>{{ installment.paid_date|date:"M d, Y" }}</small>
+                                                {% endif %}
+                                            </span>
+                                        {% elif installment.status == 'Pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-hourglass-half me-1"></i>Due
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Quick Action Buttons -->
+                                    {% if installment.status != 'Paid' %}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-success" onclick="markAsPaid({{ installment.installment_id }}, {{ installment.amount }})">
+                                            <i class="fas fa-check me-1"></i>Mark Paid
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Installment Summary -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="installment-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <h5 class="text-white">Installment Summary</h5>
+                                    <div class="row text-white">
+                                        <div class="col-md-3">
+                                            <strong>Total:</strong> {{ installments|length }}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Paid:</strong> 
+                                            {% with paid_count=installments|length %}
+                                                {% for inst in installments %}
+                                                    {% if inst.status == 'Paid' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Pending:</strong>
+                                            {% with pending_count=0 %}
+                                                {% for inst in installments %}
+                                                    {% if inst.status != 'Paid' %}{{ forloop.counter0|add:1 }}{% endif %}
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Total Amount:</strong> ₹{% widthratio installments.0.amount 1 installments|length %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% else %}
+                        <div class="text-center">
+                            <div class="installment-card d-inline-block" style="max-width: 400px;">
+                                <h5 class="text-neon">Payment Plan</h5>
+                                <div class="installment-amount">{{ fee_details.number_of_installments }} Installment{{ fee_details.number_of_installments|pluralize }}</div>
+                                <div class="installment-date">
+                                    <i class="fas fa-money-bill-wave me-1"></i>₹{{ fee_details.fees_per_installment|floatformat:2 }} each
+                                </div>
+                                <div class="text-muted mt-2">
+                                    <small>Individual installment records not found</small>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-neural btn-sm" onclick="createInstallmentRecords()">
+                                        <i class="fas fa-plus me-1"></i>Create Installment Records
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center mt-4">
+            <div class="btn-group" role="group">
+                <button class="btn btn-neural" onclick="editStudent()">
+                    <i class="fas fa-edit me-2"></i>Edit Student
+                </button>
+                {% if parent_info and parent_info.father_mobile %}
+                <button class="btn btn-neon" onclick="sendWhatsApp()">
+                    <i class="fab fa-whatsapp me-2"></i>Send WhatsApp
+                </button>
+                {% endif %}
+                {% if fee_details %}
+                <button class="btn btn-neural" onclick="updateFees()">
+                    <i class="fas fa-money-bill-wave me-2"></i>Update Fees
+                </button>
+                <button class="btn btn-neon" onclick="generateReceipt()">
+                    <i class="fas fa-receipt me-2"></i>Generate Receipt
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editStudent() {
+    window.location.href = "{% url 'core:student_edit' student.registration_no %}";
+}
+
+function sendWhatsApp() {
+    if (confirm('Send WhatsApp reminder to this student\'s parents?')) {
+        NeuralTheme.showLoadingNotification('Sending WhatsApp message...');
+        
+        fetch(`/api/send-student-whatsapp/{{ student.registration_no }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                NeuralTheme.showSuccessNotification(data.message);
+            } else {
+                NeuralTheme.showErrorNotification(data.message);
+            }
+        })
+        .catch(error => {
+            NeuralTheme.showErrorNotification('Error sending WhatsApp: ' + error.message);
+        });
+    }
+}
+
+function updateFees() {
+    window.location.href = "{% url 'core:fee_payment' student.registration_no %}";
+}
+
+function generateReceipt() {
+    NeuralTheme.showLoadingNotification('Generating receipt...');
+    
+    // Create a temporary link to download the PDF
+    const link = document.createElement('a');
+    link.href = `/api/generate-receipt/{{ student.registration_no }}/`;
+    link.download = `Receipt_{{ student.full_name }}_{{ student.registration_no }}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => {
+        NeuralTheme.showSuccessNotification('Receipt generated successfully!');
+    }, 1000);
+}
+
+// Mark installment as paid
+function markAsPaid(installmentId, amount) {
+    if (confirm(`Mark this installment of ₹${amount} as paid?`)) {
+        fetch('/api/mark-installment-paid/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                installment_id: installmentId,
+                registration_no: {{ student.registration_no }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                NeuralTheme.showSuccessNotification(data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                NeuralTheme.showErrorNotification(data.message);
+            }
+        })
+        .catch(error => {
+            NeuralTheme.showErrorNotification('Error marking installment as paid: ' + error.message);
+        });
+    }
+}
+
+// Create installment records for legacy students
+function createInstallmentRecords() {
+    if (confirm('Create individual installment records based on fee details?')) {
+        fetch('/api/create-installment-records/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                registration_no: {{ student.registration_no }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                NeuralTheme.showSuccessNotification(data.message);
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                NeuralTheme.showErrorNotification(data.message);
+            }
+        })
+        .catch(error => {
+            NeuralTheme.showErrorNotification('Error creating installment records: ' + error.message);
+        });
+    }
+}
+
+// Quick fee update functionality
+function quickFeeUpdate() {
+    const amount = prompt('Enter payment amount (₹):');
+    if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+        fetch('/api/quick-fee-update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                registration_no: {{ student.registration_no }},
+                payment_amount: parseFloat(amount)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                NeuralTheme.showSuccessNotification(data.message);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                NeuralTheme.showErrorNotification(data.message);
+            }
+        })
+        .catch(error => {
+            NeuralTheme.showErrorNotification('Error processing payment: ' + error.message);
+        });
+    }
+}
+</script>
+{% endblock %}
