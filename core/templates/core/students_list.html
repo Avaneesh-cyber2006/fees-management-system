@@ -1,0 +1,525 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Students List - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Fix table visibility issues */
+.table-neural {
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.table-neural th {
+    background: rgba(0, 245, 255, 0.2) !important;
+    color: #00f5ff !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
+}
+
+.table-neural td {
+    color: #ffffff !important;
+    border: none !important;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent !important;
+}
+
+.table-neural tbody tr {
+    background: transparent !important;
+}
+
+.table-neural tbody tr:hover {
+    background: rgba(0, 245, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+/* Fix text visibility in table cells */
+.table-neural .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.table-neural strong {
+    color: #ffffff !important;
+}
+
+/* Badge styling fixes */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.bg-warning {
+    background-color: #fbbf24 !important;
+    color: #1f2937 !important;
+}
+
+.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+/* Button group styling */
+.btn-group .btn {
+    margin-right: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="text-neon">
+                    <i class="fas fa-users me-3"></i>Students List
+                </h1>
+                <p class="lead mb-0">Manage all registered students</p>
+            </div>
+            <div>
+                <a href="{% url 'core:student_registration' %}" class="btn btn-neural">
+                    <i class="fas fa-plus me-2"></i>Add New Student
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced Search and Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="neural-card">
+                    <h5 class="text-neon mb-3">
+                        <i class="fas fa-filter me-2"></i>Search & Filters
+                    </h5>
+                    <form method="get" id="filterForm">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Search</label>
+                                <input type="text" class="form-control form-control-neural" 
+                                       name="search" value="{{ search_query }}" 
+                                       placeholder="Search by name, reg no, course, parent...">
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Course</label>
+                                <select class="form-control form-control-neural" name="course">
+                                    <option value="">All Courses</option>
+                                    {% for course in courses %}
+                                    <option value="{{ course }}" {% if course_filter == course %}selected{% endif %}>
+                                        {{ course }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Branch</label>
+                                <select class="form-control form-control-neural" name="branch">
+                                    <option value="">All Branches</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch.branch_code }}" {% if branch_filter == branch.branch_code %}selected{% endif %}>
+                                        {{ branch.branch_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Payment Status</label>
+                                <select class="form-control form-control-neural" name="payment_status">
+                                    <option value="">All Status</option>
+                                    <option value="paid" {% if payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                                    <option value="pending" {% if payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                                    <option value="overdue" {% if payment_status == 'overdue' %}selected{% endif %}>Overdue</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Gender</label>
+                                <select class="form-control form-control-neural" name="gender">
+                                    <option value="">All Genders</option>
+                                    <option value="M" {% if gender_filter == 'M' %}selected{% endif %}>Male</option>
+                                    <option value="F" {% if gender_filter == 'F' %}selected{% endif %}>Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Sort By</label>
+                                <select class="form-control form-control-neural" name="sort">
+                                    <option value="registration_no" {% if sort_by == 'registration_no' %}selected{% endif %}>Registration No</option>
+                                    <option value="first_name" {% if sort_by == 'first_name' %}selected{% endif %}>First Name</option>
+                                    <option value="last_name" {% if sort_by == 'last_name' %}selected{% endif %}>Last Name</option>
+                                    <option value="date_of_admission" {% if sort_by == 'date_of_admission' %}selected{% endif %}>Admission Date</option>
+                                    <option value="feedetails__fees_remaining" {% if sort_by == 'feedetails__fees_remaining' %}selected{% endif %}>Pending Fees</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Order</label>
+                                <select class="form-control form-control-neural" name="order">
+                                    <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                                    <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                                </select>
+                            </div>
+                            <div class="col-md-7 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-neon me-2">
+                                    <i class="fas fa-search me-2"></i>Apply Filters
+                                </button>
+                                <a href="{% url 'core:students_list' %}" class="btn btn-neural me-2">
+                                    <i class="fas fa-times me-2"></i>Clear All
+                                </a>
+                                <button type="button" class="btn btn-warning me-2" onclick="exportFilteredData()">
+                                    <i class="fas fa-download me-2"></i>Export Filtered
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="sendBulkWhatsApp()" id="bulkWhatsAppBtn" style="display: none;">
+                                    <i class="fab fa-whatsapp me-2"></i>Send WhatsApp to Selected
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        {% if students %}
+        <div class="table-responsive">
+            <table class="table table-neural">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <label for="selectAll" class="ms-2">Select All</label>
+                        </th>
+                        <th>Reg No</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Branch</th>
+                        <th>Father's Name</th>
+                        <th>Mobile</th>
+                        <th>Fee Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="student-checkbox" 
+                                   value="{{ student.registration_no }}" 
+                                   data-name="{{ student.full_name }}"
+                                   data-mobile="{{ student.parentinfo.father_mobile|default:student.parentinfo.mother_mobile }}"
+                                   onchange="toggleBulkActions()">
+                        </td>
+                        <td>{{ student.registration_no }}</td>
+                        <td>
+                            <div>
+                                <strong>{{ student.full_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ student.get_gender_display }}</small>
+                            </div>
+                        </td>
+                        <td>{{ student.academicinfo.enrolled_course|default:"N/A" }}</td>
+                        <td>{{ student.academicinfo.branch_code.branch_name|default:"N/A" }}</td>
+                        <td>{{ student.parentinfo.father_name|default:"N/A" }}</td>
+                        <td>{{ student.parentinfo.father_mobile|default:"N/A" }}</td>
+                        <td>
+                            {% if student.feedetails.fees_remaining > 0 %}
+                                <span class="badge bg-warning">₹{{ student.feedetails.fees_remaining }} Pending</span>
+                            {% else %}
+                                <span class="badge bg-success">Paid</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-neon" 
+                                        onclick="viewStudent({{ student.registration_no }})" 
+                                        title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-neural" 
+                                        onclick="editStudent({{ student.registration_no }})" 
+                                        title="Edit Student">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if student.parentinfo.father_mobile or student.parentinfo.mother_mobile %}
+                                <button type="button" class="btn btn-sm" 
+                                        style="background: #25D366; color: white;" 
+                                        onclick="sendWhatsApp({{ student.registration_no }})" 
+                                        title="Send WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-danger" 
+                                        onclick="removeStudent({{ student.registration_no }}, '{{ student.full_name|escapejs }}')" 
+                                        title="Remove Student">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_students }}</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ students|length }}</div>
+                    <div class="stat-label">Showing Results</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% with pending_count=0 %}
+                            {% for student in students %}
+                                {% if student.feedetails.fees_remaining > 0 %}
+                                    {% with pending_count=pending_count|add:1 %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ pending_count }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Pending Fees</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% with paid_count=0 %}
+                            {% for student in students %}
+                                {% if student.feedetails.fees_remaining == 0 %}
+                                    {% with paid_count=paid_count|add:1 %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ paid_count }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Fees Paid</div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="text-center py-5">
+            {% if search_query %}
+                <i class="fas fa-search" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+                <h4>No students found</h4>
+                <p class="text-muted">No students match your search criteria "{{ search_query }}"</p>
+                <a href="{% url 'core:students_list' %}" class="btn btn-neural">
+                    <i class="fas fa-list me-2"></i>View All Students
+                </a>
+            {% else %}
+                <i class="fas fa-users" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+                <h4>No students registered yet</h4>
+                <p class="text-muted">Start by registering your first student!</p>
+                <a href="{% url 'core:student_registration' %}" class="btn btn-neural">
+                    <i class="fas fa-plus me-2"></i>Register First Student
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div class="modal fade" id="studentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--glass-border);">
+                <h5 class="modal-title text-neon">Student Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="studentDetails">
+                <!-- Student details will be loaded here -->
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--glass-border);">
+                <button type="button" class="btn btn-neon" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewStudent(registrationNo) {
+    // Redirect to student detail page
+    window.location.href = `{% url 'core:student_detail' 0 %}`.replace('0', registrationNo);
+}
+
+function editStudent(registrationNo) {
+    // Redirect to edit page
+    window.location.href = `{% url 'core:student_edit' 0 %}`.replace('0', registrationNo);
+}
+
+function sendWhatsApp(registrationNo) {
+    // Redirect to WhatsApp panel with pre-selected student
+    window.location.href = `{% url 'core:whatsapp_panel' %}?student=${registrationNo}`;
+}
+
+function removeStudent(registrationNo, studentName) {
+    if (confirm(`Are you sure you want to remove student ${studentName}? This action cannot be undone and will delete all related data including fees, academic info, and parent information.`)) {
+        fetch('{% url "core:remove_student" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                registration_no: registrationNo
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while removing the student.');
+        });
+    }
+}
+
+function exportFilteredData() {
+    // Get current filter parameters
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+    
+    // Redirect to export with current filters
+    window.location.href = '{% url "core:export_data_excel" %}?' + params.toString();
+}
+
+// Multiple select functionality
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+    
+    studentCheckboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    toggleBulkActions();
+}
+
+function toggleBulkActions() {
+    const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+    const bulkWhatsAppBtn = document.getElementById('bulkWhatsAppBtn');
+    
+    if (selectedCheckboxes.length > 0) {
+        bulkWhatsAppBtn.style.display = 'inline-block';
+        bulkWhatsAppBtn.innerHTML = `<i class="fab fa-whatsapp me-2"></i>Send WhatsApp to Selected (${selectedCheckboxes.length})`;
+    } else {
+        bulkWhatsAppBtn.style.display = 'none';
+    }
+    
+    // Update select all checkbox state
+    const allCheckboxes = document.querySelectorAll('.student-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    
+    if (selectedCheckboxes.length === allCheckboxes.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else if (selectedCheckboxes.length > 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+}
+
+function sendBulkWhatsApp() {
+    const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one student.');
+        return;
+    }
+    
+    const selectedStudents = Array.from(selectedCheckboxes).map(checkbox => ({
+        registration_no: checkbox.value,
+        name: checkbox.dataset.name,
+        mobile: checkbox.dataset.mobile
+    }));
+    
+    // Filter students with valid mobile numbers
+    const studentsWithMobile = selectedStudents.filter(student => student.mobile && student.mobile !== 'None');
+    
+    if (studentsWithMobile.length === 0) {
+        alert('None of the selected students have valid mobile numbers.');
+        return;
+    }
+    
+    if (studentsWithMobile.length !== selectedStudents.length) {
+        const missingMobile = selectedStudents.length - studentsWithMobile.length;
+        if (!confirm(`${missingMobile} student(s) don't have mobile numbers and will be skipped. Continue with ${studentsWithMobile.length} students?`)) {
+            return;
+        }
+    }
+    
+    // Send bulk WhatsApp request
+    fetch('{% url "core:send_bulk_whatsapp" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            students: studentsWithMobile
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`WhatsApp messages sent successfully to ${data.sent_count} students!`);
+            // Clear selections
+            document.querySelectorAll('.student-checkbox:checked').forEach(cb => cb.checked = false);
+            toggleBulkActions();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while sending WhatsApp messages.');
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

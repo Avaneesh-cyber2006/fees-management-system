@@ -1,0 +1,488 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Fix table visibility issues for dashboard */
+.table-neural {
+    background: rgba(15, 23, 42, 0.8) !important;
+    backdrop-filter: blur(20px);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+}
+
+.table-neural th {
+    background: rgba(0, 245, 255, 0.2) !important;
+    color: #00f5ff !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 1rem;
+}
+
+.table-neural td {
+    color: #ffffff !important;
+    border: none !important;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: transparent !important;
+}
+
+.table-neural tbody tr {
+    background: transparent !important;
+}
+
+.table-neural tbody tr:hover {
+    background: rgba(0, 245, 255, 0.1) !important;
+    transition: all 0.3s ease;
+}
+
+/* Fix text visibility in table cells */
+.table-neural .text-muted {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.table-neural strong {
+    color: #ffffff !important;
+}
+
+/* Badge styling fixes */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+}
+
+.bg-warning {
+    background-color: #fbbf24 !important;
+    color: #1f2937 !important;
+}
+
+.bg-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.bg-secondary {
+    background-color: #6b7280 !important;
+    color: #ffffff !important;
+}
+
+/* Enhanced stat cards */
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Ensure no-animation stat numbers are visible */
+.stat-number-no-animation {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #00f5ff !important;
+    text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+    margin-bottom: 10px;
+}
+    box-shadow: 0 10px 25px rgba(0, 245, 255, 0.2);
+}
+
+/* Neural cards hover effect */
+.neural-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.neural-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 245, 255, 0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Welcome Section -->
+    <div class="glass-container mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="text-neon mb-3">
+                    <i class="fas fa-tachometer-alt me-3"></i>
+                    Welcome to Fees Management Dashboard
+                </h1>
+                <p class="lead mb-0">
+                    Manage student registrations, track fees, and send WhatsApp reminders with ease.
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="pulse-animation d-flex flex-column align-items-center">
+                    <img src="{% static 'core/images/logo.png' %}" alt="Pillay Sir's ICSE Classes" height="80" class="mb-2">
+                    <small class="text-neon-pink">Excellence in Education</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
+                <i class="fas fa-users position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-number-no-animation">₹{{ total_fees_collected|floatformat:0 }}</div>
+                <div class="stat-label">Fees Collected</div>
+                <i class="fas fa-money-bill-wave position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-number-no-animation">₹{{ pending_fees|floatformat:0 }}</div>
+                <div class="stat-label">Pending Fees</div>
+                <i class="fas fa-clock position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-number">{{ overdue_students }}</div>
+                <div class="stat-label">Overdue Students</div>
+                <i class="fas fa-exclamation-triangle position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installment Statistics -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
+                <div class="stat-number">{{ installment_stats.total_installments }}</div>
+                <div class="stat-label">Total Installments</div>
+                <i class="fas fa-list position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                <div class="stat-number">{{ installment_stats.due_installments }}</div>
+                <div class="stat-label">Due Installments</div>
+                <i class="fas fa-clock position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <div class="stat-number">{{ installment_stats.pending_installments }}</div>
+                <div class="stat-label">Pending (Overdue)</div>
+                <i class="fas fa-exclamation-triangle position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="stat-number">{{ installment_stats.paid_installments }}</div>
+                <div class="stat-label">Paid Installments</div>
+                <i class="fas fa-check-circle position-absolute" style="top: 15px; right: 15px; font-size: 1.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reminder Alert -->
+    {% if installment_stats.reminders_today > 0 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border: none; border-radius: 15px; color: white;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-bell fa-2x me-3"></i>
+                    <div>
+                        <h5 class="mb-1">📱 {{ installment_stats.reminders_today }} Reminder(s) Due Today!</h5>
+                        <p class="mb-0">Click the "Auto WhatsApp Reminders" panel below to check and send reminders.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:student_registration' %}'" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: 2px solid #10b981;">
+                <div class="text-center">
+                    <div class="card-icon" style="color: white; font-size: 3rem; margin-bottom: 1rem;">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h3 class="card-title" style="color: white; font-weight: bold;">Student Registration</h3>
+                    <p class="card-text" style="color: rgba(255,255,255,0.9);">
+                        Register new students with enhanced form validation, progress tracking, and automatic installment setup.
+                    </p>
+                    <button class="btn mt-3" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; padding: 12px 24px; font-weight: 600;">
+                        <i class="fas fa-plus me-2"></i>Register Now
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:students_list' %}'" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border: 2px solid #3b82f6;">
+                <div class="text-center">
+                    <div class="card-icon" style="color: white; font-size: 3rem; margin-bottom: 1rem;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="card-title" style="color: white; font-weight: bold;">View Students</h3>
+                    <p class="card-text" style="color: rgba(255,255,255,0.9);">
+                        Browse all registered students with advanced search, filters, and export functionality.
+                    </p>
+                    <button class="btn mt-3" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; padding: 12px 24px; font-weight: 600;">
+                        <i class="fas fa-eye me-2"></i>View All ({{ total_students }})
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:custom_whatsapp_panel' %}'">
+                <div class="text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <h3 class="card-title">Custom WhatsApp Messages</h3>
+                    <p class="card-text">
+                        Send personalized messages and media to students via WhatsApp.
+                    </p>
+                    <button class="btn btn-success mt-3">
+                        <i class="fas fa-edit me-2"></i>Custom Messages
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:whatsapp_message_center' %}'" style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border: 2px solid #25d366;">
+                <div class="text-center">
+                    <div class="card-icon" style="color: white; font-size: 3rem; margin-bottom: 1rem;">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <h3 class="card-title" style="color: white; font-weight: bold;">WhatsApp Message Center</h3>
+                    <p class="card-text" style="color: rgba(255,255,255,0.9);">
+                        Smart categorized messaging system for birthday wishes and fee reminders with individual and bulk sending.
+                    </p>
+                    <button class="btn mt-3" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; padding: 12px 24px; font-weight: 600;">
+                        <i class="fas fa-paper-plane me-2"></i>Open Message Center
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:installment_management' %}'" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border: 2px solid #8b5cf6;">
+                <div class="text-center">
+                    <div class="card-icon" style="color: white; font-size: 3rem; margin-bottom: 1rem;">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 class="card-title" style="color: white; font-weight: bold;">Installment Management</h3>
+                    <p class="card-text" style="color: rgba(255,255,255,0.9);">
+                        Track payment status (Due → Pending → Paid) and mark payments with real-time updates.
+                    </p>
+                    <button class="btn mt-3" style="background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); color: white; border-radius: 25px; padding: 12px 24px; font-weight: 600;">
+                        <i class="fas fa-calendar-check me-2"></i>Manage ({{ installment_stats.total_installments }})
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:blacklisted_students_new' %}'">
+                <div class="text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                    <h3 class="card-title">Enhanced Blacklist</h3>
+                    <p class="card-text">
+                        View students with pending installments and overdue payments with detailed analytics.
+                    </p>
+                    <button class="btn btn-danger mt-3">
+                        <i class="fas fa-user-times me-2"></i>View Enhanced Blacklist
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'core:reports' %}'">
+                <div class="text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="card-title">Reports & Analytics</h3>
+                    <p class="card-text">
+                        Generate detailed reports, receipts, and analytics for better insights.
+                    </p>
+                    <button class="btn btn-neural mt-3">
+                        <i class="fas fa-file-pdf me-2"></i>View Reports
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="neural-card h-100" onclick="location.href='{% url 'admin:index' %}'">
+                <div class="text-center">
+                    <div class="card-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="card-title">System Settings</h3>
+                    <p class="card-text">
+                        Access admin panel for advanced configuration and system management.
+                    </p>
+                    <button class="btn btn-neural mt-3">
+                        <i class="fas fa-tools me-2"></i>Admin Panel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="glass-container">
+        <h3 class="text-neon mb-4">
+            <i class="fas fa-clock me-2"></i>Recent Activities
+        </h3>
+        
+        {% if recent_students %}
+        <div class="table-responsive">
+            <table class="table table-neural">
+                <thead>
+                    <tr>
+                        <th>Registration No</th>
+                        <th>Student Name</th>
+                        <th>Course</th>
+                        <th>Admission Date</th>
+                        <th>Fee Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in recent_students %}
+                    <tr>
+                        <td>{{ student.registration_no }}</td>
+                        <td>{{ student.full_name }}</td>
+                        <td>
+                            {% if student.academicinfo %}
+                                {{ student.academicinfo.enrolled_course }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ student.date_of_admission|date:"M d, Y" }}</td>
+                        <td>
+                            {% if student.feedetails %}
+                                {% if student.feedetails.fees_remaining > 0 %}
+                                    <span class="badge bg-warning">₹{{ student.feedetails.fees_remaining }} Pending</span>
+                                {% else %}
+                                    <span class="badge bg-success">Paid</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">No Fee Info</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-neon" onclick="viewStudent({{ student.registration_no }})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+            <p class="text-muted">No students registered yet. Start by registering your first student!</p>
+            <a href="{% url 'core:student_registration' %}" class="btn btn-neural">
+                <i class="fas fa-plus me-2"></i>Register First Student
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function viewStudent(registrationNo) {
+    // Redirect to student detail page
+    window.location.href = `{% url 'core:student_detail' 0 %}`.replace('0', registrationNo);
+}
+
+function runInstallmentReminders() {
+    if (!confirm('This will check for installments requiring WhatsApp reminders based on Pillay Sir\'s timing schedule:\n\n• 3 days before due date: Reminder -1\n• 1 day after due date: Reminder -2\n• 4 days after due date: Reminder -3\n• 7 days after due date: Last Reminder\n• 10 days after due date: Discontinuation\n\nContinue?')) {
+        return;
+    }
+    
+    // Show loading state
+    const button = document.getElementById('autoReminderBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+    button.disabled = true;
+    
+    fetch('{% url "core:run_installment_reminders" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        if (data.success) {
+            if (data.reminders_count > 0) {
+                const message = `📱 ${data.reminders_count} installments require reminders today!\n\n${data.message}\n\n${data.script_info}\n\nWould you like to run the reminder script now?`;
+                if (confirm(message)) {
+                    // Provide instructions to run the script
+                    alert('📋 To send the reminders:\n\n1. Run: start_installment_reminders.bat\n2. Or execute: python send_whatsapp_reminders_installments.py\n\nThe script will show you exactly which reminders will be sent before proceeding.');
+                }
+            } else {
+                alert('✅ ' + data.message);
+            }
+        } else {
+            alert('❌ Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        alert('❌ An error occurred: ' + error.message);
+        console.error('Error:', error);
+    });
+}
+
+function sendAutomaticReminders() {
+    // Legacy function - redirect to new installment reminders
+    runInstallmentReminders();
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

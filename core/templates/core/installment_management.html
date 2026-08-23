@@ -1,0 +1,489 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Installment Management - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .installment-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .installment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    .status-badge {
+        font-size: 0.85em;
+        font-weight: 600;
+        padding: 0.4em 0.8em;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-due {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+    }
+    
+    .status-pending {
+        background: linear-gradient(45deg, #f39c12, #e67e22);
+        color: white;
+        animation: pulse 2s infinite;
+    }
+    
+    .status-paid {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        color: white;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+    
+    .btn-mark-paid {
+        background: linear-gradient(45deg, #27ae60, #2ecc71);
+        border: none;
+        border-radius: 25px;
+        padding: 8px 20px;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-mark-paid:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        color: white;
+    }
+    
+    .btn-mark-paid:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border-left: 5px solid;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .stats-card.due { border-left-color: #3498db; }
+    .stats-card.pending { border-left-color: #f39c12; }
+    .stats-card.paid { border-left-color: #27ae60; }
+    .stats-card.total { border-left-color: #9b59b6; }
+    
+    .table-responsive {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .table th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85em;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        vertical-align: middle;
+        border-color: #e9ecef;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    .filter-section {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Success Message -->
+    <div id="successMessage" class="alert alert-success alert-dismissible fade success-message" style="display: none;">
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <strong>Success!</strong> <span id="successText"></span>
+    </div>
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-gradient text-primary mb-0">💰 Installment Management</h2>
+            <p class="text-muted">Manage student fee installments with real-time status tracking</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card total">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-primary">{{ stats.total_installments }}</h3>
+                        <p class="text-muted mb-0">Total Installments</p>
+                    </div>
+                    <div class="text-primary">
+                        <i class="fas fa-list fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card due">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-info">{{ stats.due_count }}</h3>
+                        <p class="text-muted mb-0">Due Installments</p>
+                    </div>
+                    <div class="text-info">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card pending">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-warning">{{ stats.pending_count }}</h3>
+                        <p class="text-muted mb-0">Pending Installments</p>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card paid">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-success">{{ stats.paid_count }}</h3>
+                        <p class="text-muted mb-0">Paid Installments</p>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Amount Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="stats-card pending">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-warning">₹{{ stats.total_due_amount|floatformat:2 }}</h3>
+                        <p class="text-muted mb-0">Total Outstanding Amount</p>
+                    </div>
+                    <div class="text-warning">
+                        <i class="fas fa-rupee-sign fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="stats-card paid">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0 text-success">₹{{ stats.total_paid_amount|floatformat:2 }}</h3>
+                        <p class="text-muted mb-0">Total Collected Amount</p>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-money-bill-wave fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="filter-section">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <form method="GET" class="d-flex">
+                    <input type="text" class="form-control me-2" name="search" 
+                           placeholder="Search by student name or registration..." 
+                           value="{{ search_query }}" style="border-radius: 25px;">
+                    <button type="submit" class="btn btn-primary" style="border-radius: 25px;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-md-4">
+                <select class="form-select" id="statusFilter" style="border-radius: 25px;">
+                    <option value="">All Statuses</option>
+                    <option value="Due" {% if status_filter == 'Due' %}selected{% endif %}>Due</option>
+                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Paid" {% if status_filter == 'Paid' %}selected{% endif %}>Paid</option>
+                </select>
+            </div>
+            
+            <div class="col-md-4 text-end">
+                <button class="btn btn-warning" onclick="updateOverdueStatuses()" style="border-radius: 25px;">
+                    <i class="fas fa-sync-alt me-2"></i>Update Overdue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installments Table -->
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Registration No</th>
+                    <th>Installment No</th>
+                    <th>Amount</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Days Overdue</th>
+                    <th>Paid Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for installment in installments %}
+                <tr id="installment-{{ installment.installment_id }}">
+                    <td>
+                        <strong>{{ installment.registration_no.full_name }}</strong>
+                        {% if installment.registration_no.academicinfo %}
+                        <br><small class="text-muted">{{ installment.registration_no.academicinfo.enrolled_course }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ installment.registration_no.registration_no }}</td>
+                    <td>
+                        <span class="badge bg-primary">{{ installment.installment_no }}</span>
+                    </td>
+                    <td>
+                        <strong>₹{{ installment.amount|floatformat:2 }}</strong>
+                    </td>
+                    <td>{{ installment.due_date|date:"d M Y" }}</td>
+                    <td>
+                        <span class="status-badge status-{{ installment.status|lower }}">
+                            {{ installment.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if installment.days_overdue > 0 %}
+                            <span class="badge bg-danger">{{ installment.days_overdue }} days</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if installment.paid_date %}
+                            {{ installment.paid_date|date:"d M Y" }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if installment.status != 'Paid' %}
+                            <button class="btn btn-mark-paid btn-sm" 
+                                    onclick="markAsPaid({{ installment.installment_id }})"
+                                    id="btn-{{ installment.installment_id }}">
+                                <i class="fas fa-check me-1"></i>Mark Paid
+                            </button>
+                        {% else %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check"></i> Paid
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h5>No installments found</h5>
+                            <p>No installments match your current filters.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Status filter functionality
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const status = this.value;
+    const url = new URL(window.location);
+    if (status) {
+        url.searchParams.set('status', status);
+    } else {
+        url.searchParams.delete('status');
+    }
+    window.location.href = url.toString();
+});
+
+// Mark installment as paid
+function markAsPaid(installmentId) {
+    const button = document.getElementById(`btn-${installmentId}`);
+    const originalText = button.innerHTML;
+    
+    // Disable button and show loading
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+    
+    fetch('/api/mark-installment-paid/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            installment_id: installmentId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the row
+            const row = document.getElementById(`installment-${installmentId}`);
+            const statusCell = row.cells[5];
+            const paidDateCell = row.cells[7];
+            const actionCell = row.cells[8];
+            
+            // Update status badge
+            statusCell.innerHTML = '<span class="status-badge status-paid">Paid</span>';
+            
+            // Update paid date
+            paidDateCell.innerHTML = data.paid_date;
+            
+            // Update action button
+            actionCell.innerHTML = '<span class="badge bg-success"><i class="fas fa-check"></i> Paid</span>';
+            
+            // Show success message
+            showSuccessMessage(data.message);
+            
+            // Update statistics (reload page after short delay)
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            // Re-enable button on error
+            button.disabled = false;
+            button.innerHTML = originalText;
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        // Re-enable button on error
+        button.disabled = false;
+        button.innerHTML = originalText;
+        console.error('Error:', error);
+        alert('An error occurred while marking the installment as paid.');
+    });
+}
+
+// Update overdue statuses
+function updateOverdueStatuses() {
+    fetch('/api/update-overdue-statuses/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessMessage(data.message);
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating overdue statuses.');
+    });
+}
+
+// Show success message
+function showSuccessMessage(message) {
+    const successDiv = document.getElementById('successMessage');
+    const successText = document.getElementById('successText');
+    
+    successText.textContent = message;
+    successDiv.style.display = 'block';
+    successDiv.classList.add('show');
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        successDiv.classList.remove('show');
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 150);
+    }, 3000);
+}
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

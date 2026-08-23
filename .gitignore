@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Environment variables / secrets
+.env
+.env.*
+*.env
+
+# Node
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Backups
+backups/
+
+# Chrome / WhatsApp Selenium profile
+chrome_profile/
+chrome_profile.lock
+
+# Django generated static files
+staticfiles/
+
+# Temporary/debug files
+*.tmp
+*.old
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

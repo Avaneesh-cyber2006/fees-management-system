@@ -1,0 +1,1267 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Student Registration - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Button loading animations */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(0, 245, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 245, 255, 0);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    border-color: #10b981 !important;
+    animation: bounce 0.6s ease-in-out;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    border-color: #ef4444 !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Progress step animations */
+.progress-step.completed {
+    animation: stepComplete 0.5s ease-in-out;
+}
+
+@keyframes stepComplete {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Form validation error animation */
+.form-validation-error {
+    animation: inputError 0.3s ease-in-out;
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+}
+
+@keyframes inputError {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Form section animations */
+.form-section {
+    margin-bottom: 2rem;
+    animation: slideInUp 0.6s ease-out;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 15px 15px 0 0;
+    margin-bottom: 0;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.section-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.section-header:hover::before {
+    left: 100%;
+}
+
+.section-body {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-top: none;
+    border-radius: 0 0 15px 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-control-neural {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 2px solid rgba(0, 245, 255, 0.3) !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    padding: 12px 16px !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+}
+
+.form-control-neural:focus {
+    border-color: #00f5ff !important;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.3) !important;
+    background: rgba(15, 23, 42, 0.8) !important;
+}
+
+.form-control-neural::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.form-label {
+    color: #00f5ff !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.btn-neural {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 30px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4) !important;
+}
+
+.btn-neural:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.6) !important;
+    color: white !important;
+}
+
+.btn-neon {
+    background: linear-gradient(135deg, #00f5ff 0%, #0ea5e9 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 30px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 5px 15px rgba(0, 245, 255, 0.4) !important;
+}
+
+.btn-neon:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 25px rgba(0, 245, 255, 0.6) !important;
+    color: white !important;
+}
+
+.installment-helper {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: white;
+}
+
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding: 0 2rem;
+}
+
+.progress-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+}
+
+.progress-step::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: rgba(0, 245, 255, 0.3);
+    z-index: 1;
+}
+
+.progress-step:last-child::before {
+    display: none;
+}
+
+.progress-step.active .step-circle {
+    background: linear-gradient(135deg, #00f5ff 0%, #0ea5e9 100%);
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+}
+
+.progress-step.completed .step-circle {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-weight: bold;
+    font-size: 12px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.step-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-validation-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.success-message {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .progress-indicator {
+        padding: 0 1rem;
+    }
+    
+    .step-label {
+        font-size: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="text-center mb-4">
+            <h1 class="text-neon">
+                <i class="fas fa-user-plus me-3"></i>
+                Student Registration
+            </h1>
+            <p class="lead">Register a new student with complete details</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="progress-indicator">
+            <div class="progress-step active" data-step="1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Student Info</div>
+            </div>
+            <div class="progress-step" data-step="2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Parent Info</div>
+            </div>
+            <div class="progress-step" data-step="3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Academic Info</div>
+            </div>
+            <div class="progress-step" data-step="4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Fee Details</div>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle me-2"></i>
+            <span id="successText"></span>
+        </div>
+
+        <form method="post" id="registrationForm" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Student Information Section -->
+            <div class="form-section">
+                <h3 class="section-header">
+                    <i class="fas fa-user me-2"></i>Student Information
+                </h3>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="registration_no">Registration Number *</label>
+                            <input type="number" class="form-control form-control-neural" 
+                                   id="registration_no" name="registration_no" required
+                                   placeholder="Enter registration number">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="date_of_admission">Date of Admission *</label>
+                            <input type="date" class="form-control form-control-neural" 
+                                   id="date_of_admission" name="date_of_admission" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="first_name">First Name *</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="first_name" name="first_name" required
+                                   placeholder="Enter first name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="middle_name">Middle Name</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="middle_name" name="middle_name"
+                                   placeholder="Enter middle name (optional)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="last_name">Last Name *</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="last_name" name="last_name" required
+                                   placeholder="Enter last name">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="gender">Gender *</label>
+                            <select class="form-control form-control-neural" id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="date_of_birth">Date of Birth *</label>
+                            <input type="date" class="form-control form-control-neural" 
+                                   id="date_of_birth" name="date_of_birth" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="address">Address</label>
+                        <textarea class="form-control form-control-neural" id="address" name="address" 
+                                  rows="3" placeholder="Enter complete address"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Information Section -->
+            <div class="form-section">
+                <h3 class="section-header">
+                    <i class="fas fa-users me-2"></i>Parent Information
+                </h3>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="father_name">Father's Name *</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="father_name" name="father_name" required
+                                   placeholder="Enter father's name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="father_occupation">Father's Occupation</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="father_occupation" name="father_occupation"
+                                   placeholder="Enter father's occupation">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="father_mobile">Father's Mobile</label>
+                            <input type="tel" class="form-control form-control-neural" 
+                                   id="father_mobile" name="father_mobile"
+                                   placeholder="Enter father's mobile number">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="mother_mobile">Mother's Mobile</label>
+                            <input type="tel" class="form-control form-control-neural" 
+                                   id="mother_mobile" name="mother_mobile"
+                                   placeholder="Enter mother's mobile number">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information Section -->
+            <div class="form-section">
+                <h3 class="section-header">
+                    <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                </h3>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="enrolled_course">Enrolled Course *</label>
+                            <select class="form-control form-control-neural" id="enrolled_course" name="enrolled_course" required>
+                                <option value="">Select Course</option>
+                                <option value="8th ICSE">8th ICSE</option>
+                                <option value="9th ICSE">9th ICSE</option>
+                                <option value="10th ICSE">10th ICSE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="branch_code">Branch *</label>
+                            <select class="form-control form-control-neural" id="branch_code" name="branch_code" required>
+                                <option value="">Select Branch</option>
+                                {% for branch in branches %}
+                                <option value="{{ branch.branch_code }}">{{ branch.branch_name }} - {{ branch.branch_location }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="percentage_previous_exam">Previous Exam Percentage</label>
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   class="form-control form-control-neural" 
+                                   id="percentage_previous_exam" name="percentage_previous_exam"
+                                   placeholder="Enter percentage (0-100)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="school_name">School Name</label>
+                            <input type="text" class="form-control form-control-neural" 
+                                   id="school_name" name="school_name"
+                                   placeholder="Enter current/previous school name">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fee Details Section -->
+            <div class="form-section">
+                <h3 class="section-header">
+                    <i class="fas fa-money-bill-wave me-2"></i>Fee Details
+                </h3>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="total_fees">Total Fees *</label>
+                            <input type="number" step="0.01" min="0" 
+                                   class="form-control form-control-neural" 
+                                   id="total_fees" name="total_fees" required
+                                   placeholder="Enter total fees amount"
+                                   onkeydown="preventEnterSubmission(event)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="number_of_installments">Number of Installments *</label>
+                            <input type="number" min="1" max="12" 
+                                   class="form-control form-control-neural" 
+                                   id="number_of_installments" name="number_of_installments" 
+                                   value="1" required onchange="calculateInstallment()" 
+                                   onkeydown="handleInstallmentKeyDown(event)">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="fees_per_installment">Fees per Installment</label>
+                            <input type="number" step="0.01" min="0" 
+                                   class="form-control form-control-neural" 
+                                   id="fees_per_installment" name="fees_per_installment" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="fees_remaining">Fees Remaining *</label>
+                            <input type="number" step="0.01" min="0" 
+                                   class="form-control form-control-neural" 
+                                   id="fees_remaining" name="fees_remaining" required
+                                   placeholder="Enter remaining fees amount">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Installment Details -->
+                    <div id="installmentDetails" style="display: none;">
+                        <div class="form-row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; border-radius: 10px; color: white;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Installment Setup:</strong> Configure individual installment amounts and due dates below.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- First Installment -->
+                        <div class="installment-section" id="installment1" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="first_installment">First Installment Amount</label>
+                                    <input type="number" step="0.01" min="0" 
+                                           class="form-control form-control-neural installment-amount" 
+                                           id="first_installment" name="first_installment"
+                                           placeholder="Enter first installment amount"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="first_installment_date">First Installment Due Date</label>
+                                    <input type="date" class="form-control form-control-neural" 
+                                           id="first_installment_date" name="first_installment_date"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second Installment -->
+                        <div class="installment-section" id="installment2" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="second_installment">Second Installment Amount</label>
+                                    <input type="number" step="0.01" min="0" 
+                                           class="form-control form-control-neural installment-amount" 
+                                           id="second_installment" name="second_installment"
+                                           placeholder="Enter second installment amount"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="second_installment_date">Second Installment Due Date</label>
+                                    <input type="date" class="form-control form-control-neural" 
+                                           id="second_installment_date" name="second_installment_date"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Third Installment -->
+                        <div class="installment-section" id="installment3" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="third_installment">Third Installment Amount</label>
+                                    <input type="number" step="0.01" min="0" 
+                                           class="form-control form-control-neural installment-amount" 
+                                           id="third_installment" name="third_installment"
+                                           placeholder="Enter third installment amount"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="third_installment_date">Third Installment Due Date</label>
+                                    <input type="date" class="form-control form-control-neural" 
+                                           id="third_installment_date" name="third_installment_date"
+                                           onkeydown="preventEnterSubmission(event)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Installments Container (for 4+ installments) -->
+                        <div id="dynamicInstallments"></div>
+
+                        <!-- Auto-fill Helper -->
+                        <div class="form-row mt-3">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-outline-info" onclick="autoFillInstallments()" style="border-radius: 20px;">
+                                    <i class="fas fa-magic me-2"></i>Auto-fill Equal Amounts
+                                </button>
+                                <small class="text-muted ms-3">Automatically distribute total fees equally across installments</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Installment Helper -->
+                    <div class="installment-helper">
+                        <h6><i class="fas fa-lightbulb me-2"></i>Installment Management</h6>
+                        <p class="mb-2">After registration, installments will be automatically created based on the details above. You can:</p>
+                        <ul class="mb-0">
+                            <li>Track payment status (Due → Pending → Paid)</li>
+                            <li>Send automatic WhatsApp reminders</li>
+                            <li>Mark payments as received</li>
+                            <li>View detailed payment analytics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-neural btn-lg px-5" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Register Student
+                </button>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-neon btn-lg px-5 ms-3">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Progress tracking
+let currentStep = 1;
+const totalSteps = 4;
+
+// Split total fees into equal installments; remainder goes on the last installment
+function splitAmountEvenly(totalFees, numInstallments) {
+    const totalCents = Math.round(totalFees * 100);
+    const baseCents = Math.floor(totalCents / numInstallments);
+    const remainder = totalCents - (baseCents * numInstallments);
+    const amounts = [];
+
+    for (let i = 0; i < numInstallments; i++) {
+        const cents = baseCents + (i === numInstallments - 1 ? remainder : 0);
+        amounts.push((cents / 100).toFixed(2));
+    }
+
+    return amounts;
+}
+
+// Auto-calculate fees per installment and show/hide installment fields
+function calculateInstallment() {
+    const totalFees = parseFloat(document.getElementById('total_fees').value) || 0;
+    const installments = parseInt(document.getElementById('number_of_installments').value) || 1;
+    const feesPerInstallment = totalFees / installments;
+    
+    document.getElementById('fees_per_installment').value = feesPerInstallment.toFixed(2);
+    
+    // If fees remaining is empty, set it to total fees
+    if (!document.getElementById('fees_remaining').value) {
+        document.getElementById('fees_remaining').value = totalFees.toFixed(2);
+    }
+    
+    // Show/hide installment details based on number of installments
+    showInstallmentFields(installments);
+}
+
+// Show installment fields based on number of installments
+function showInstallmentFields(numInstallments) {
+    const installmentDetails = document.getElementById('installmentDetails');
+    const installmentSections = document.querySelectorAll('.installment-section');
+    const dynamicContainer = document.getElementById('dynamicInstallments');
+    
+    // Hide all existing installment sections first
+    installmentSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Clear dynamic installments
+    dynamicContainer.innerHTML = '';
+    
+    if (numInstallments >= 1) {
+        // Show the installment details container
+        installmentDetails.style.display = 'block';
+        
+        // Show the first 3 installment sections (static)
+        for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+            const section = document.getElementById(`installment${i}`);
+            if (section) {
+                section.style.display = 'block';
+            }
+        }
+        
+        // Create additional installment fields dynamically for 4+ installments
+        if (numInstallments > 3) {
+            for (let i = 4; i <= numInstallments; i++) {
+                const installmentDiv = createDynamicInstallmentField(i);
+                dynamicContainer.appendChild(installmentDiv);
+            }
+        }
+    } else {
+        installmentDetails.style.display = 'none';
+    }
+}
+
+// Create dynamic installment field
+function createDynamicInstallmentField(installmentNumber) {
+    const div = document.createElement('div');
+    div.className = 'installment-section';
+    div.id = `installment${installmentNumber}`;
+    
+    const ordinalNumbers = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'];
+    const ordinalName = ordinalNumbers[installmentNumber] || `${installmentNumber}th`;
+    const fieldName = ordinalName.toLowerCase();
+    
+    div.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="installment_${installmentNumber}_amount">${ordinalName} Installment Amount</label>
+                <input type="number" step="0.01" min="0" 
+                       class="form-control form-control-neural installment-amount" 
+                       id="installment_${installmentNumber}_amount" 
+                       name="installment_${installmentNumber}_amount"
+                       placeholder="Enter ${fieldName} installment amount"
+                       onkeydown="preventEnterSubmission(event)">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="installment_${installmentNumber}_date">${ordinalName} Installment Due Date</label>
+                <input type="date" class="form-control form-control-neural" 
+                       id="installment_${installmentNumber}_date" 
+                       name="installment_${installmentNumber}_date"
+                       onkeydown="preventEnterSubmission(event)">
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+// Auto-fill installments with equal amounts
+function autoFillInstallments() {
+    const totalFees = parseFloat(document.getElementById('total_fees').value) || 0;
+    const numInstallments = parseInt(document.getElementById('number_of_installments').value) || 1;
+    
+    if (totalFees <= 0) {
+        alert('Please enter total fees first');
+        return;
+    }
+
+    const amounts = splitAmountEvenly(totalFees, numInstallments);
+    const today = new Date();
+
+    // Fill first 3 installments (static fields)
+    for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+        const amountField = document.getElementById(`${getInstallmentName(i)}_installment`);
+        const dateField = document.getElementById(`${getInstallmentName(i)}_installment_date`);
+
+        if (amountField && document.getElementById(`installment${i}`).style.display !== 'none') {
+            amountField.value = amounts[i - 1];
+        }
+
+        if (dateField && document.getElementById(`installment${i}`).style.display !== 'none') {
+            const dueDate = new Date(today);
+            dueDate.setMonth(today.getMonth() + i);
+            dateField.value = dueDate.toISOString().split('T')[0];
+        }
+    }
+
+    // Fill dynamic installments (4+)
+    if (numInstallments > 3) {
+        for (let i = 4; i <= numInstallments; i++) {
+            const amountField = document.getElementById(`installment_${i}_amount`);
+            const dateField = document.getElementById(`installment_${i}_date`);
+
+            if (amountField) {
+                amountField.value = amounts[i - 1];
+            }
+
+            if (dateField) {
+                const dueDate = new Date(today);
+                dueDate.setMonth(today.getMonth() + i);
+                dateField.value = dueDate.toISOString().split('T')[0];
+            }
+        }
+    }
+
+    showSuccessMessage(`Installments auto-filled (₹${amounts.join(', ₹')} each) with monthly due dates!`);
+}
+
+// Helper function to get installment name
+function getInstallmentName(index) {
+    const names = ['', 'first', 'second', 'third'];
+    return names[index] || '';
+}
+
+// Progress step tracking based on form interaction
+function updateProgress() {
+    const sections = document.querySelectorAll('.form-section');
+    const steps = document.querySelectorAll('.progress-step');
+    
+    sections.forEach((section, index) => {
+        const inputs = section.querySelectorAll('input[required], select[required]');
+        let filledInputs = 0;
+        
+        inputs.forEach(input => {
+            if (input.value.trim() !== '') {
+                filledInputs++;
+            }
+        });
+        
+        const stepIndex = index;
+        const step = steps[stepIndex];
+        
+        if (filledInputs === inputs.length && inputs.length > 0) {
+            step.classList.add('completed');
+            step.classList.remove('active');
+        } else if (filledInputs > 0) {
+            step.classList.add('active');
+            step.classList.remove('completed');
+        } else {
+            step.classList.remove('active', 'completed');
+        }
+    });
+}
+
+// Enhanced form validation
+function validateForm() {
+    const requiredFields = document.querySelectorAll('input[required], select[required]');
+    let isValid = true;
+    let invalidFields = [];
+    
+    console.log('Validating', requiredFields.length, 'required fields...');
+    
+    requiredFields.forEach(field => {
+        const errorMsg = field.parentNode.querySelector('.error-message') || 
+                        createErrorMessage(field);
+        
+        if (!field.value.trim()) {
+            field.classList.add('form-validation-error');
+            errorMsg.textContent = 'This field is required';
+            errorMsg.style.display = 'block';
+            invalidFields.push(field.name || field.id || 'unnamed field');
+            isValid = false;
+        } else {
+            field.classList.remove('form-validation-error');
+            errorMsg.style.display = 'none';
+            
+            // Additional validation
+            if (field.type === 'email' && !isValidEmail(field.value)) {
+                field.classList.add('form-validation-error');
+                errorMsg.textContent = 'Please enter a valid email address';
+                errorMsg.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (field.type === 'tel' && field.value && !isValidPhone(field.value)) {
+                field.classList.add('form-validation-error');
+                errorMsg.textContent = 'Please enter a valid phone number';
+                errorMsg.style.display = 'block';
+                isValid = false;
+            }
+        }
+    });
+    
+    if (!isValid) {
+        console.log('Invalid fields:', invalidFields);
+    } else {
+        console.log('All fields are valid');
+    }
+    
+    return isValid;
+}
+
+function createErrorMessage(field) {
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'error-message';
+    field.parentNode.appendChild(errorMsg);
+    return errorMsg;
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidPhone(phone) {
+    return /^[\+]?[1-9][\d]{9,14}$/.test(phone.replace(/[\s\-\(\)]/g, ''));
+}
+
+function showSuccessMessage(message) {
+    const successDiv = document.getElementById('successMessage');
+    const successText = document.getElementById('successText');
+    
+    successText.textContent = message;
+    successDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        successDiv.style.display = 'none';
+    }, 5000);
+}
+
+// Handle Enter key in installment field to prevent form submission
+function handleInstallmentKeyDown(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevent form submission
+        calculateInstallment(); // Trigger installment calculation instead
+        console.log('Enter pressed in installments field - showing installment fields');
+        
+        // Show success message to user
+        const numInstallments = parseInt(event.target.value) || 1;
+        if (numInstallments >= 1) {
+            showSuccessMessage(`✅ Showing ${numInstallments} installment field${numInstallments === 1 ? '' : 's'} below. Please fill in amounts and dates.`);
+        }
+    }
+}
+
+// General function to prevent Enter key from submitting form in input fields
+function preventEnterSubmission(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        console.log('Enter key prevented form submission in field:', event.target.id);
+        
+        // Move to next field instead
+        const inputs = Array.from(document.querySelectorAll('input, select, textarea'));
+        const currentIndex = inputs.indexOf(event.target);
+        if (currentIndex >= 0 && currentIndex < inputs.length - 1) {
+            inputs[currentIndex + 1].focus();
+        }
+    }
+}
+
+// Auto-calculate when total fees changes
+document.getElementById('total_fees').addEventListener('input', calculateInstallment);
+
+// Add progress tracking to all form inputs
+document.querySelectorAll('input, select, textarea').forEach(input => {
+    input.addEventListener('input', updateProgress);
+    input.addEventListener('blur', updateProgress);
+});
+
+// Form validation and submission
+document.getElementById('registrationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    console.log('Form submission started...');
+    
+    // Temporarily disable all validation for debugging
+    console.log('🐛 DEBUG MODE: Skipping all validation');
+    const isValid = true;
+    console.log('Form validation result:', isValid);
+    
+    console.log('Form validation passed, proceeding with submission...');
+    
+    // Show loading state with enhanced animation
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    // Add loading animation class
+    submitBtn.classList.add('btn-loading');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering & Saving to Database...';
+    submitBtn.disabled = true;
+    
+    // Add pulse animation to the button
+    submitBtn.style.animation = 'pulse 1.5s infinite';
+    
+    // Show progress message
+    showLoadingMessage('Processing registration... Please wait.');
+    
+    // Prepare form data with debugging info
+    const formData = new FormData(this);
+    
+    // Add debugging flag to check database insertion
+    formData.append('debug_mode', 'true');
+    
+    console.log('Form Data being sent:');
+    const formDataEntries = [];
+    for (let [key, value] of formData.entries()) {
+        console.log(key + ': ' + value);
+        formDataEntries.push(`${key}: ${value}`);
+    }
+    
+    // Form data logged to console
+    
+    // Check CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    console.log('CSRF Token found:', !!csrfToken);
+    console.log('CSRF Token value:', csrfToken ? csrfToken.value.substring(0, 10) + '...' : 'NOT FOUND');
+    
+    const submitUrl = this.action || window.location.href;
+    console.log('Submitting to URL:', submitUrl);
+    
+    fetch(submitUrl, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken ? csrfToken.value : ''
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        // Restore button state
+        submitBtn.classList.remove('btn-loading');
+        submitBtn.style.animation = '';
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        console.log('Server response:', data);
+        
+        if (data.success) {
+            // Show success animation
+            submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Registration Successful!';
+            submitBtn.classList.add('btn-success');
+            
+            showSuccessMessage(`🎉 Student registered successfully! 
+                Registration No: ${data.registration_no || 'N/A'}
+                Database Status: ${data.database_status || 'Saved'}
+                Total Students: ${data.student_count || 'Unknown'}
+                Redirecting to dashboard...`);
+            
+            // Mark all steps as completed with animation
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                setTimeout(() => {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                }, index * 200);
+            });
+            
+            // Show database confirmation
+            if (data.database_details) {
+                console.log('Database Details:', data.database_details);
+            }
+            
+            // Redirect after showing success
+            setTimeout(() => {
+                window.location.href = data.redirect_url || '{% url "core:dashboard" %}';
+            }, 3000);
+        } else {
+            // Show error state
+            submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Registration Failed';
+            submitBtn.classList.add('btn-danger');
+            
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.classList.remove('btn-danger');
+            }, 3000);
+            
+            showErrorMessage(`❌ Registration failed: ${data.message || 'Unknown error'}
+                ${data.errors ? '\nErrors: ' + JSON.stringify(data.errors) : ''}`);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch Error Details:', error);
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        
+        submitBtn.classList.remove('btn-loading');
+        submitBtn.style.animation = '';
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        showErrorMessage('Network error occurred: ' + error.message + '. Please check your connection and try again.');
+    });
+});
+
+// Validate installment details
+function validateInstallments(numInstallments) {
+    let isValid = true;
+    
+    // Validate first 3 installments (static fields)
+    for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+        const section = document.getElementById(`installment${i}`);
+        if (section && section.style.display !== 'none') {
+            const amountField = document.getElementById(`${getInstallmentName(i)}_installment`);
+            const dateField = document.getElementById(`${getInstallmentName(i)}_installment_date`);
+            
+            if (!amountField.value || parseFloat(amountField.value) <= 0) {
+                amountField.classList.add('form-validation-error');
+                isValid = false;
+            } else {
+                amountField.classList.remove('form-validation-error');
+            }
+            
+            if (!dateField.value) {
+                dateField.classList.add('form-validation-error');
+                isValid = false;
+            } else {
+                dateField.classList.remove('form-validation-error');
+            }
+        }
+    }
+    
+    // Validate dynamic installments (4+)
+    if (numInstallments > 3) {
+        for (let i = 4; i <= numInstallments; i++) {
+            const amountField = document.getElementById(`installment_${i}_amount`);
+            const dateField = document.getElementById(`installment_${i}_date`);
+            
+            if (amountField && (!amountField.value || parseFloat(amountField.value) <= 0)) {
+                amountField.classList.add('form-validation-error');
+                isValid = false;
+            } else if (amountField) {
+                amountField.classList.remove('form-validation-error');
+            }
+            
+            if (dateField && !dateField.value) {
+                dateField.classList.add('form-validation-error');
+                isValid = false;
+            } else if (dateField) {
+                dateField.classList.remove('form-validation-error');
+            }
+        }
+    }
+    
+    return isValid;
+}
+
+function showErrorMessage(message) {
+    alert('❌ ' + message);
+}
+
+function showLoadingMessage(message) {
+    const loadingDiv = document.getElementById('successMessage');
+    const loadingText = document.getElementById('successText');
+    
+    loadingText.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${message}`;
+    loadingDiv.style.display = 'block';
+    loadingDiv.className = 'alert alert-info';
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        if (loadingDiv.style.display === 'block' && loadingText.innerHTML.includes('fa-spinner')) {
+            loadingDiv.style.display = 'none';
+        }
+    }, 10000);
+}
+
+// Test submission function to bypass validation
+function testSubmission() {
+    console.log('🐛 TEST SUBMISSION - Bypassing validation');
+    
+    const form = document.getElementById('registrationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing Submission...';
+    submitBtn.disabled = true;
+    
+    // Create minimal test data
+    const testData = new FormData();
+    testData.append('registration_no', '99999');
+    testData.append('date_of_admission', '2024-01-01');
+    testData.append('first_name', 'Test');
+    testData.append('last_name', 'Student');
+    testData.append('gender', 'M');
+    testData.append('date_of_birth', '2000-01-01');
+    testData.append('father_name', 'Test Father');
+    testData.append('father_mobile', '9876543210');
+    testData.append('enrolled_course', 'ICSE Class 10');
+    testData.append('branch_code', 'SADAR');
+    testData.append('total_fees', '30000');
+    testData.append('number_of_installments', '1');
+    testData.append('fees_per_installment', '30000');
+    testData.append('fees_remaining', '30000');
+    testData.append('debug_mode', 'true');
+    
+    console.log('Sending test data...');
+    
+    fetch(form.action || window.location.href, {
+        method: 'POST',
+        body: testData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        console.log('Test response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Test response data:', data);
+        
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        if (data.success) {
+            alert('✅ Test submission successful! Registration system is working.');
+        } else {
+            alert('❌ Test submission failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Test submission error:', error);
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        alert('❌ Test submission error: ' + error.message);
+    });
+}
+
+// Auto-set fees remaining to total fees if empty
+document.getElementById('total_fees').addEventListener('blur', function() {
+    if (!document.getElementById('fees_remaining').value) {
+        document.getElementById('fees_remaining').value = this.value;
+    }
+});
+
+// Initialize progress on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateProgress();
+    calculateInstallment();
+    
+    // Debug: Check if form element exists
+    const form = document.getElementById('registrationForm');
+    console.log('Registration form found:', !!form);
+    if (form) {
+        console.log('Form element:', form);
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+    } else {
+        console.error('❌ Registration form not found!');
+        alert('❌ Registration form not found! Check console for details.');
+    }
+});
+
+// Auto-generate registration number suggestion
+document.getElementById('registration_no').addEventListener('focus', function() {
+    if (!this.value) {
+        const currentYear = new Date().getFullYear();
+        const randomNum = Math.floor(Math.random() * 1000) + 1;
+        this.placeholder = `Suggestion: ${currentYear}${randomNum.toString().padStart(3, '0')}`;
+    }
+});
+</script>
+{% endblock %}

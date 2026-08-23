@@ -1,0 +1,15 @@
+Django==4.2.7
+mysqlclient==2.2.0
+twilio==8.10.0
+reportlab>=3.5.53,<4.0.0
+xhtml2pdf==0.2.11
+Pillow==10.0.1  # For image handling if needed
+python-decouple==3.8
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+matplotlib==3.6.3  # For generating charts and graphs
+pandas==1.5.3  # For data analysis and manipulation
+openpyxl==3.0.10  # For Excel export functionality
+plotly==5.15.0  # Interactive charts
+django-extensions==3.2.1  # Additional Django utilities
+selenium>=4.15.0  # For WhatsApp Web automation

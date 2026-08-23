@@ -1,0 +1,736 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Edit Student - {{ student.full_name }} - Pillay Sir's ICSE Classes{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 1rem;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: 0;
+}
+
+.section-body {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 2rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.btn-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="glass-container">
+        <div class="glass-header">
+            <h1><i class="fas fa-user-edit"></i> Edit Student Information</h1>
+            <p>Update information for {{ student.full_name }} (Registration: {{ student.registration_no }})</p>
+        </div>
+
+        <form method="post" id="editStudentForm" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <!-- Student Information Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-user"></i> Student Information</h3>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ student_form.registration_no.id_for_label }}" class="form-label">
+                                {{ student_form.registration_no.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.registration_no }}
+                            {% if student_form.registration_no.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.registration_no.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ student_form.date_of_admission.id_for_label }}" class="form-label">
+                                {{ student_form.date_of_admission.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.date_of_admission }}
+                            {% if student_form.date_of_admission.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.date_of_admission.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ student_form.first_name.id_for_label }}" class="form-label">
+                                {{ student_form.first_name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.first_name }}
+                            {% if student_form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.first_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ student_form.middle_name.id_for_label }}" class="form-label">
+                                {{ student_form.middle_name.label }}
+                            </label>
+                            {{ student_form.middle_name }}
+                            {% if student_form.middle_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.middle_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ student_form.last_name.id_for_label }}" class="form-label">
+                                {{ student_form.last_name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.last_name }}
+                            {% if student_form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.last_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ student_form.gender.id_for_label }}" class="form-label">
+                                {{ student_form.gender.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.gender }}
+                            {% if student_form.gender.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.gender.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ student_form.date_of_birth.id_for_label }}" class="form-label">
+                                {{ student_form.date_of_birth.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ student_form.date_of_birth }}
+                            {% if student_form.date_of_birth.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ student_form.date_of_birth.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ student_form.address.id_for_label }}" class="form-label">
+                            {{ student_form.address.label }}
+                        </label>
+                        {{ student_form.address }}
+                        {% if student_form.address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ student_form.address.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parent Information Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-users"></i> Parent Information</h3>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ parent_form.father_name.id_for_label }}" class="form-label">
+                                {{ parent_form.father_name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ parent_form.father_name }}
+                            {% if parent_form.father_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ parent_form.father_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ parent_form.father_occupation.id_for_label }}" class="form-label">
+                                {{ parent_form.father_occupation.label }}
+                            </label>
+                            {{ parent_form.father_occupation }}
+                            {% if parent_form.father_occupation.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ parent_form.father_occupation.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ parent_form.father_mobile.id_for_label }}" class="form-label">
+                                {{ parent_form.father_mobile.label }}
+                            </label>
+                            {{ parent_form.father_mobile }}
+                            {% if parent_form.father_mobile.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ parent_form.father_mobile.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ parent_form.mother_mobile.id_for_label }}" class="form-label">
+                                {{ parent_form.mother_mobile.label }}
+                            </label>
+                            {{ parent_form.mother_mobile }}
+                            {% if parent_form.mother_mobile.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ parent_form.mother_mobile.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Information Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-graduation-cap"></i> Academic Information</h3>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ academic_form.enrolled_course.id_for_label }}" class="form-label">
+                                {{ academic_form.enrolled_course.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ academic_form.enrolled_course }}
+                            {% if academic_form.enrolled_course.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ academic_form.enrolled_course.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ academic_form.branch_code.id_for_label }}" class="form-label">
+                                {{ academic_form.branch_code.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ academic_form.branch_code }}
+                            {% if academic_form.branch_code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ academic_form.branch_code.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ academic_form.percentage_previous_exam.id_for_label }}" class="form-label">
+                                {{ academic_form.percentage_previous_exam.label }}
+                            </label>
+                            {{ academic_form.percentage_previous_exam }}
+                            {% if academic_form.percentage_previous_exam.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ academic_form.percentage_previous_exam.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ academic_form.school_name.id_for_label }}" class="form-label">
+                                {{ academic_form.school_name.label }}
+                            </label>
+                            {{ academic_form.school_name }}
+                            {% if academic_form.school_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ academic_form.school_name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fee Details Section -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-money-bill-wave"></i> Fee Details</h3>
+                </div>
+                <div class="section-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ fee_form.total_fees.id_for_label }}" class="form-label">
+                                {{ fee_form.total_fees.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ fee_form.total_fees }}
+                            {% if fee_form.total_fees.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ fee_form.total_fees.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ fee_form.number_of_installments.id_for_label }}" class="form-label">
+                                {{ fee_form.number_of_installments.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ fee_form.number_of_installments }}
+                            {% if fee_form.number_of_installments.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ fee_form.number_of_installments.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ fee_form.fees_per_installment.id_for_label }}" class="form-label">
+                                {{ fee_form.fees_per_installment.label }}
+                            </label>
+                            {{ fee_form.fees_per_installment }}
+                            {% if fee_form.fees_per_installment.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ fee_form.fees_per_installment.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ fee_form.fees_remaining.id_for_label }}" class="form-label">
+                                {{ fee_form.fees_remaining.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ fee_form.fees_remaining }}
+                            {% if fee_form.fees_remaining.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ fee_form.fees_remaining.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Installment Details -->
+                    <div id="installmentDetails" style="display: none;">
+                        <div class="form-row mb-3">
+                            <div class="col-12">
+                                <div class="alert alert-info" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border: none; border-radius: 10px; color: white;">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Installment Setup:</strong> Configure individual installment amounts and due dates below.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- First Installment -->
+                        <div class="installment-section" id="installment1" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="first_installment">First Installment Amount</label>
+                                    {{ fee_form.first_installment }}
+                                    {% if fee_form.first_installment.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.first_installment.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="first_installment_date">First Installment Due Date</label>
+                                    {{ fee_form.first_installment_date }}
+                                    {% if fee_form.first_installment_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.first_installment_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Second Installment -->
+                        <div class="installment-section" id="installment2" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="second_installment">Second Installment Amount</label>
+                                    {{ fee_form.second_installment }}
+                                    {% if fee_form.second_installment.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.second_installment.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="second_installment_date">Second Installment Due Date</label>
+                                    {{ fee_form.second_installment_date }}
+                                    {% if fee_form.second_installment_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.second_installment_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Third Installment -->
+                        <div class="installment-section" id="installment3" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="third_installment">Third Installment Amount</label>
+                                    {{ fee_form.third_installment }}
+                                    {% if fee_form.third_installment.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.third_installment.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="third_installment_date">Third Installment Due Date</label>
+                                    {{ fee_form.third_installment_date }}
+                                    {% if fee_form.third_installment_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ fee_form.third_installment_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Installments Container (for 4+ installments) -->
+                        <div id="dynamicInstallments"></div>
+
+                        <!-- Auto-fill Helper -->
+                        <div class="form-row mt-3">
+                            <div class="col-12">
+                                <button type="button" class="btn btn-outline-info" onclick="autoFillInstallments()" style="border-radius: 20px;">
+                                    <i class="fas fa-magic me-2"></i>Auto-fill Equal Amounts
+                                </button>
+                                <small class="text-muted ms-3">Automatically distribute total fees equally across installments</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <a href="{% url 'core:student_detail' student.registration_no %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Student
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Calculate fees per installment automatically and show/hide installment fields
+    const totalFeesInput = document.getElementById('{{ fee_form.total_fees.id_for_label }}');
+    const installmentsInput = document.getElementById('{{ fee_form.number_of_installments.id_for_label }}');
+    const perInstallmentInput = document.getElementById('{{ fee_form.fees_per_installment.id_for_label }}');
+    
+    function calculateInstallment() {
+        const totalFees = parseFloat(totalFeesInput.value) || 0;
+        const installments = parseInt(installmentsInput.value) || 1;
+        const feesPerInstallment = totalFees / installments;
+        
+        perInstallmentInput.value = feesPerInstallment.toFixed(2);
+        
+        // Show/hide installment details based on number of installments
+        showInstallmentFields(installments);
+    }
+    
+    // Show installment fields based on number of installments
+    function showInstallmentFields(numInstallments) {
+        const installmentDetails = document.getElementById('installmentDetails');
+        const installmentSections = document.querySelectorAll('.installment-section');
+        const dynamicContainer = document.getElementById('dynamicInstallments');
+        
+        // Hide all existing installment sections first
+        installmentSections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Clear dynamic installments
+        dynamicContainer.innerHTML = '';
+        
+        if (numInstallments >= 1) {
+            // Show the installment details container
+            installmentDetails.style.display = 'block';
+            
+            // Show the first 3 installment sections (static)
+            for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+                const section = document.getElementById(`installment${i}`);
+                if (section) {
+                    section.style.display = 'block';
+                }
+            }
+            
+            // Create additional installment fields dynamically for 4+ installments
+            if (numInstallments > 3) {
+                for (let i = 4; i <= numInstallments; i++) {
+                    const installmentDiv = createDynamicInstallmentField(i);
+                    dynamicContainer.appendChild(installmentDiv);
+                }
+            }
+        } else {
+            installmentDetails.style.display = 'none';
+        }
+    }
+    
+    // Create dynamic installment field
+    function createDynamicInstallmentField(installmentNumber) {
+        const div = document.createElement('div');
+        div.className = 'installment-section';
+        div.id = `installment${installmentNumber}`;
+        
+        const ordinalNumbers = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth'];
+        const ordinalName = ordinalNumbers[installmentNumber] || `${installmentNumber}th`;
+        const fieldName = ordinalName.toLowerCase();
+        
+        div.innerHTML = `
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="installment_${installmentNumber}_amount">${ordinalName} Installment Amount</label>
+                    <input type="number" step="0.01" min="0" 
+                           class="form-control form-control-neural installment-amount" 
+                           id="installment_${installmentNumber}_amount" 
+                           name="installment_${installmentNumber}_amount"
+                           placeholder="Enter ${fieldName} installment amount">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="installment_${installmentNumber}_date">${ordinalName} Installment Due Date</label>
+                    <input type="date" class="form-control form-control-neural" 
+                           id="installment_${installmentNumber}_date" 
+                           name="installment_${installmentNumber}_date">
+                </div>
+            </div>
+        `;
+        
+        return div;
+    }
+    
+    totalFeesInput.addEventListener('input', calculateInstallment);
+    installmentsInput.addEventListener('input', calculateInstallment);
+    
+    // Form validation
+    const form = document.getElementById('editStudentForm');
+    form.addEventListener('submit', function(event) {
+        // Validate installment setup
+        const numInstallments = parseInt(installmentsInput.value) || 1;
+        if (numInstallments >= 1) {
+            if (!validateInstallments(numInstallments)) {
+                event.preventDefault();
+                event.stopPropagation();
+                alert('Please complete all installment details.');
+                return;
+            }
+        }
+        
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+    
+    // Initial calculation and setup
+    calculateInstallment();
+});
+
+// Split total fees into equal installments; remainder goes on the last installment
+function splitAmountEvenly(totalFees, numInstallments) {
+    const totalCents = Math.round(totalFees * 100);
+    const baseCents = Math.floor(totalCents / numInstallments);
+    const remainder = totalCents - (baseCents * numInstallments);
+    const amounts = [];
+
+    for (let i = 0; i < numInstallments; i++) {
+        const cents = baseCents + (i === numInstallments - 1 ? remainder : 0);
+        amounts.push((cents / 100).toFixed(2));
+    }
+
+    return amounts;
+}
+
+// Auto-fill installments with equal amounts
+function autoFillInstallments() {
+    const totalFees = parseFloat(document.getElementById('{{ fee_form.total_fees.id_for_label }}').value) || 0;
+    const numInstallments = parseInt(document.getElementById('{{ fee_form.number_of_installments.id_for_label }}').value) || 1;
+
+    if (totalFees <= 0) {
+        alert('Please enter total fees first');
+        return;
+    }
+
+    const amounts = splitAmountEvenly(totalFees, numInstallments);
+    const today = new Date();
+
+    // Fill first 3 installments (static fields)
+    for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+        const amountField = document.getElementById(`${getInstallmentName(i)}_installment`);
+        const dateField = document.getElementById(`${getInstallmentName(i)}_installment_date`);
+
+        if (amountField && document.getElementById(`installment${i}`).style.display !== 'none') {
+            amountField.value = amounts[i - 1];
+        }
+
+        if (dateField && document.getElementById(`installment${i}`).style.display !== 'none') {
+            const dueDate = new Date(today);
+            dueDate.setMonth(today.getMonth() + i);
+            dateField.value = dueDate.toISOString().split('T')[0];
+        }
+    }
+
+    // Fill dynamic installments (4+)
+    if (numInstallments > 3) {
+        for (let i = 4; i <= numInstallments; i++) {
+            const amountField = document.getElementById(`installment_${i}_amount`);
+            const dateField = document.getElementById(`installment_${i}_date`);
+
+            if (amountField) {
+                amountField.value = amounts[i - 1];
+            }
+
+            if (dateField) {
+                const dueDate = new Date(today);
+                dueDate.setMonth(today.getMonth() + i);
+                dateField.value = dueDate.toISOString().split('T')[0];
+            }
+        }
+    }
+
+    alert(`Installments auto-filled (₹${amounts.join(', ₹')} each) with monthly due dates!`);
+}
+
+// Helper function to get installment name
+function getInstallmentName(index) {
+    const names = ['', 'first', 'second', 'third'];
+    return names[index] || '';
+}
+
+// Validate installment details
+function validateInstallments(numInstallments) {
+    let isValid = true;
+    
+    // Validate first 3 installments (static fields)
+    for (let i = 1; i <= Math.min(numInstallments, 3); i++) {
+        const section = document.getElementById(`installment${i}`);
+        if (section && section.style.display !== 'none') {
+            const amountField = document.getElementById(`${getInstallmentName(i)}_installment`);
+            const dateField = document.getElementById(`${getInstallmentName(i)}_installment_date`);
+            
+            if (!amountField.value || parseFloat(amountField.value) <= 0) {
+                amountField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                amountField.classList.remove('is-invalid');
+            }
+            
+            if (!dateField.value) {
+                dateField.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                dateField.classList.remove('is-invalid');
+            }
+        }
+    }
+    
+    // Validate dynamic installments (4+)
+    if (numInstallments > 3) {
+        for (let i = 4; i <= numInstallments; i++) {
+            const amountField = document.getElementById(`installment_${i}_amount`);
+            const dateField = document.getElementById(`installment_${i}_date`);
+            
+            if (amountField && (!amountField.value || parseFloat(amountField.value) <= 0)) {
+                amountField.classList.add('is-invalid');
+                isValid = false;
+            } else if (amountField) {
+                amountField.classList.remove('is-invalid');
+            }
+            
+            if (dateField && !dateField.value) {
+                dateField.classList.add('is-invalid');
+                isValid = false;
+            } else if (dateField) {
+                dateField.classList.remove('is-invalid');
+            }
+        }
+    }
+    
+    return isValid;
+}
+
+// Form submission handling
+document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+    console.log('Student edit form submission started...');
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Updating Student...';
+        submitBtn.disabled = true;
+        
+        // Let the form submit normally (don't prevent default)
+        console.log('Form will submit normally to server...');
+        
+        // Restore button after a delay in case of errors
+        setTimeout(() => {
+            if (submitBtn.disabled) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }, 10000);
+    }
+});
+
+// Debug: Check if form exists on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('editStudentForm');
+    console.log('Student edit form found:', !!form);
+    if (form) {
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+    }
+});
+</script>
+{% endblock %}
