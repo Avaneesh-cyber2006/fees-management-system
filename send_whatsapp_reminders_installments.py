@@ -176,7 +176,7 @@ def get_birthday_students():
     return birthday_students
 
 def send_whatsapp_message(phone_number, message):
-    """Send WhatsApp message using PyWhatKit with delivery verification."""
+    """Send WhatsApp message using Selenium with delivery verification."""
     from core.whatsapp_service import send_whatsapp_message as send_via_service
 
     result = send_via_service(phone_number, message, wait_time=15)

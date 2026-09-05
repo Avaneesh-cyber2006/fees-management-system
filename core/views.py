@@ -110,16 +110,9 @@ def dashboard(request):
 @login_required
 def student_registration(request):
     """Student registration view"""
-    print(f"=== REGISTRATION VIEW CALLED ===")
-    print(f"Method: {request.method}")
-    print(f"User: {request.user}")
     
     if request.method == 'POST':
         try:
-            # Debug: Print all POST data
-            print("=== REGISTRATION DEBUG ===")
-            print("POST Data:", dict(request.POST))
-            print("Headers:", dict(request.headers))
             
             # Validate required fields
             required_fields = [
@@ -136,7 +129,6 @@ def student_registration(request):
             
             if missing_fields:
                 error_msg = f'Missing required fields: {", ".join(missing_fields)}'
-                print("ERROR:", error_msg)
                 return JsonResponse({
                     'success': False,
                     'message': error_msg

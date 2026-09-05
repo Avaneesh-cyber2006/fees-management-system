@@ -1,69 +1,91 @@
-# 🎓 Pillay Sir's ICSE Classes - Fees Management System
+# Fees Management System
 
-A complete Django-based fees management system with Neural Glass theme and WhatsApp integration for coaching classes.
+A Django-based fees management system for coaching classes with student management, fee tracking, installment management, and WhatsApp reminder automation.
 
-## ✨ Features
+## Features
 
-### 🏠 Dashboard
-- **Futuristic Neural Glass UI** with glowing effects and animations
-- **Real-time Statistics** - Total students, fees collected, pending fees, overdue students
-- **Quick Action Cards** with hover animations
-- **Recent Activities** table with student information
+### Student Management
+- Complete student registration with personal information
+- Parent information management with contact details
+- Academic information including course enrollment and branch details
+- Student directory with search and filter functionality
+- Detailed student profiles with complete information
 
-### 👥 Student Management
-- **Complete Student Registration** with all required fields
-- **Student Directory** with search and filter functionality
-- **Detailed Student Profiles** with personal, academic, and fee information
-- **Parent Information** management with contact details
+### Fee Management
+- Fee structure management with total fees and installment plans
+- Installment tracking with unlimited installment support
+- Due date management and overdue tracking
+- Payment recording and fee status monitoring
+- Dynamic installment management with auto-fill functionality
 
-### 💰 Fee Management
-- **Fee Tracking** with installment support
-- **Payment Updates** with payment history
-- **Fee Status Monitoring** (Paid/Pending/Overdue)
-- **Multiple Payment Methods** support
+### WhatsApp Automation
+- Selenium-based WhatsApp Web automation for sending reminders
+- Automated fee reminders based on installment due dates
+- Birthday message automation for students
+- Custom message templates for different scenarios
+- Multiple parent contact support (father and mother)
+- Message logging and tracking
+- Admin notification system for sent messages
 
-### 📱 WhatsApp Integration
-- **Automated Reminders** via PyWhatKit (no external API required)
-- **Bulk Message Sending** to multiple parents with multi-select
-- **Windows Task Scheduler** integration for daily automation
-- **Manual Trigger** from dashboard for instant reminders
-- **Smart Due Date Detection** (sends reminders 2 days before due)
-- **Comprehensive Logging** with CSV tracking
-- **Message Templates** for different scenarios
-- **Real-time Message Status** tracking
+### Dashboard & Reports
+- Real-time statistics dashboard
+- Student count and fee collection analytics
+- Installment status overview
+- Recent activities tracking
+- PDF report generation capabilities
 
-### 📊 Reports & Analytics
-- **PDF Report Generation** using ReportLab
-- **Course-wise Analytics** with visual progress bars
-- **Fee Collection Reports** with detailed breakdowns
-- **Student Directory** exports
-- **Monthly Summary** reports
+## Technology Stack
 
-### 🔐 Authentication & Security
-- **Admin/Staff Login System** with role-based access
-- **Secure Session Management**
-- **CSRF Protection** enabled
-
-## 🛠️ Technology Stack
-
-- **Backend**: Django 5.2.7
+- **Backend**: Django 4.2.7
 - **Database**: MySQL with custom schema
-- **Frontend**: Bootstrap 5 + Neural Glass Theme
-- **WhatsApp**: PyWhatKit + Pandas (no external API)
-- **PDF Generation**: ReportLab + xhtml2pdf
-- **Data Processing**: Pandas for student data analysis
-- **Automation**: Windows Task Scheduler integration
-- **Icons**: Font Awesome 6
-- **Animations**: Custom CSS animations
+- **Frontend**: HTML, CSS, JavaScript, Bootstrap 5
+- **WhatsApp Automation**: Selenium WebDriver
+- **PDF Generation**: ReportLab, xhtml2pdf
+- **Data Processing**: Pandas, openpyxl
+- **Charts**: Matplotlib, Plotly
 
-## 📋 Prerequisites
+## Project Structure
 
-- Python 3.8+
+```
+fees_management_system/
+├── core/                              # Main Django app
+│   ├── management/commands/           # Custom Django management commands
+│   │   ├── populate_sample_data.py    # Sample data population
+│   │   ├── update_installment_statuses.py  # Update installment due statuses
+│   │   └── validate_data.py           # Data validation and fixing
+│   ├── migrations/                    # Database migrations
+│   ├── static/core/                   # Static files (CSS, JS, images)
+│   ├── templates/core/                # HTML templates
+│   ├── models.py                      # Database models
+│   ├── views.py                       # View functions
+│   ├── urls.py                        # URL patterns
+│   ├── forms.py                       # Django forms
+│   ├── whatsapp_service.py            # Selenium WhatsApp service
+│   ├── fee_utils.py                   # Fee calculation utilities
+│   ├── signals.py                     # Django signals
+│   └── admin.py                       # Django admin configuration
+├── fees_management_system/            # Django project settings
+│   ├── settings.py                    # Project configuration
+│   ├── urls.py                        # Main URL configuration
+│   ├── wsgi.py                        # WSGI configuration
+│   └── asgi.py                        # ASGI configuration
+├── staticfiles/                       # Collected static files
+├── logs/                              # Application logs
+├── backups/                           # Database backups
+├── chrome_profile/                    # Selenium Chrome profile
+├── manage.py                          # Django management script
+├── requirements.txt                   # Python dependencies
+└── README.md                          # This file
+```
+
+## Prerequisites
+
+- Python 3.12 recommended
 - MySQL Server
-- WhatsApp Web access (for PyWhatKit integration)
-- Windows OS (for Task Scheduler automation)
+- Google Chrome browser (for Selenium WhatsApp automation)
+- Windows OS (recommended for batch file automation)
 
-## 🚀 Installation & Setup
+## Installation
 
 ### 1. Clone the Repository
 ```bash
@@ -74,7 +96,7 @@ cd fees_management_system
 ### 2. Create Virtual Environment
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+.\venv\Scripts\Activate.ps1  # On Windows PowerShell
 ```
 
 ### 3. Install Dependencies
@@ -87,13 +109,11 @@ pip install -r requirements.txt
 #### Create MySQL Database
 ```sql
 CREATE DATABASE pclasses;
-CREATE USER 'django_user'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON pclasses.* TO 'django_user'@'localhost';
-FLUSH PRIVILEGES;
 ```
 
-#### Update Database Settings
-Edit `fees_management_system/settings.py`:
+#### Configure Database Settings
+Edit `fees_management_system/settings.py` with your database credentials:
+
 ```python
 DATABASES = {
     'default': {
@@ -107,19 +127,22 @@ DATABASES = {
 }
 ```
 
-### 5. WhatsApp Configuration (Optional)
+Or use environment variables:
 
-#### Get Twilio Credentials
-1. Sign up at [Twilio](https://www.twilio.com/)
-2. Get your Account SID and Auth Token
-3. Set up WhatsApp Sandbox
+```bash
+DB_NAME=pclasses
+DB_USER=your_mysql_username
+DB_PASSWORD=your_mysql_password
+DB_HOST=localhost
+DB_PORT=3306
+```
 
-#### Update Twilio Settings
-Edit `fees_management_system/settings.py`:
+### 5. WhatsApp Configuration
+
+Configure your WhatsApp number in `fees_management_system/settings.py`:
+
 ```python
-TWILIO_SID = 'your_twilio_account_sid'
-TWILIO_AUTH_TOKEN = 'your_twilio_auth_token'
-TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'  # Sandbox number
+MY_WHATSAPP_NUMBER = '+91XXXXXXXXXX'  # Your WhatsApp number for confirmations
 ```
 
 ### 6. Run Migrations
@@ -128,9 +151,9 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 7. Create Sample Data
+### 7. Create Superuser
 ```bash
-python manage.py populate_sample_data
+python manage.py createsuperuser
 ```
 
 ### 8. Start Development Server
@@ -138,104 +161,141 @@ python manage.py populate_sample_data
 python manage.py runserver
 ```
 
-## 🎯 Usage
+Access the application at `http://localhost:8000/`
 
-### Access the Application
+## Usage
+
+### Access Points
 - **Main Application**: http://localhost:8000/
 - **Admin Panel**: http://localhost:8000/admin/
+- **Login**: http://localhost:8000/login/
 
-### Default Login Credentials
-- **Username**: `admin`
-- **Password**: `admin123`
+### Default Login
+Create a superuser during installation or use Django admin to create users.
 
-### Key URLs
-- `/` - Dashboard
-- `/register/` - Student Registration
-- `/students/` - Students List
-- `/fees/` - Fee Management
-- `/whatsapp/` - WhatsApp Panel
-- `/reports/` - Reports & Analytics
+### Key Features Usage
 
-## 📱 WhatsApp Features
+#### Student Registration
+1. Navigate to the registration page
+2. Fill in student personal information
+3. Add parent contact details
+4. Enter academic information (course, branch)
+5. Set up fee structure with installment plan
+6. Use auto-fill for equal installment amounts
+7. Submit to create student record
 
-### Message Templates
-1. **Fee Reminder**: Standard payment reminder
-2. **Urgent Payment**: For overdue fees
-3. **Installment Due**: Next installment reminder
-4. **Custom Message**: Personalized messages
+#### Fee Management
+1. View student details from students list
+2. Check installment status and due dates
+3. Mark installments as paid
+4. Update fee information
+5. Track payment history
 
-### Available Variables
-- `[Father_Name]` - Father's name
-- `[Student_Name]` - Student's full name
-- `[Pending_Amount]` - Outstanding fee amount
-- `[Course]` - Enrolled course
+#### WhatsApp Reminders
+1. Use the reminder script for automated reminders:
+   ```bash
+   python send_whatsapp_reminders_installments.py
+   ```
+2. Or use batch files:
+   ```bash
+   start_installment_reminders.bat
+   ```
+3. Ensure WhatsApp Web is logged in on Chrome
+4. Messages are sent based on installment due dates
 
-## 📊 Database Schema
-
-### Core Tables
-- **Student**: Personal information and registration details
-- **Parent_Info**: Parent contact and occupation details
-- **Branch**: Coaching center branches
-- **Academic_Info**: Course and academic details
-- **Fee_Details**: Fee structure and payment tracking
-
-### Relationships
-- Student → Parent_Info (One-to-One)
-- Student → Academic_Info (One-to-One)
-- Student → Fee_Details (One-to-One)
-- Branch → Academic_Info (One-to-Many)
-
-## 🎨 Neural Glass Theme
-
-### Features
-- **Glassmorphism Effects** with backdrop blur
-- **Neon Glowing Elements** with CSS animations
-- **Particle Background** with JavaScript canvas
-- **Smooth Transitions** and hover effects
-- **Responsive Design** for all screen sizes
-
-### Color Scheme
-- **Primary**: Neon Blue (#00f5ff)
-- **Secondary**: Neon Pink (#ff006e)
-- **Accent**: Purple (#8338ec)
-- **Background**: Dark with gradients
-
-## 📈 Reports Available
-
-1. **Fee Collection Report**: Complete payment tracking
-2. **Student Directory**: All student information
-3. **Overdue Fees Report**: Students with pending payments
-4. **Course-wise Analytics**: Enrollment and revenue by course
-5. **Individual Receipts**: Student-specific payment receipts
-6. **Monthly Summary**: Month-wise revenue analysis
-
-## 🔧 Customization
-
-### Adding New Courses
-Update the course choices in `core/templates/core/registration.html`:
-```html
-<option value="New Course">New Course</option>
+#### Data Validation
+Use the built-in Django management command:
+```bash
+python manage.py validate_data
 ```
 
-### Modifying Fee Structure
-Update fee calculation logic in `core/views.py` and templates.
+Apply automatic fixes:
+```bash
+python manage.py validate_data --fix
+```
 
-### Custom Message Templates
-Add new templates in `core/templates/core/whatsapp_panel.html`.
+## WhatsApp Automation
 
-## 🐛 Troubleshooting
+The system uses Selenium WebDriver to automate WhatsApp Web:
+
+### How It Works
+1. Chrome browser opens with WhatsApp Web
+2. System scans QR code on first use (manual login required)
+3. Messages are sent to parent contacts (father and mother)
+4. Message delivery is verified via DOM inspection
+5. Admin receives confirmation for each message sent
+
+### Reminder Schedule
+The system sends reminders at specific intervals:
+- **3 days before due date**: Reminder -1
+- **1 day after due date**: Reminder -2
+- **4 days after due date**: Reminder -3
+- **7 days after due date**: Last Reminder
+- **10 days after due date**: Discontinuation Notice
+
+### Birthday Messages
+- Automatic birthday wishes sent to students on their birthday
+- Personalized messages with student's first name
+- Sent to parent contact numbers
+
+## Database Schema
+
+### Core Tables
+- **student**: Student personal information
+- **parent_info**: Parent contact details
+- **branch**: Coaching center branches
+- **academic_info**: Course and academic details
+- **fee_details**: Fee structure and payment tracking
+- **fee_installments**: Individual installment records
+- **custom_message_log**: WhatsApp message history
+
+### Key Relationships
+- Student → ParentInfo (One-to-One)
+- Student → AcademicInfo (One-to-One)
+- Student → FeeDetails (One-to-One)
+- Student → FeeInstallments (One-to-Many)
+- Branch → AcademicInfo (One-to-Many)
+
+## Security
+
+- **Environment Variables**: Use .env file for sensitive data
+- **Database Credentials**: Never commit database passwords
+- **Secret Key**: Keep Django SECRET_KEY secure
+- **Session Management**: Django session middleware enabled
+- **CSRF Protection**: CSRF middleware enabled
+
+### Environment Variables
+Create a `.env` file in the project root:
+```
+DB_NAME=pclasses
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=3306
+DJANGO_SECRET_KEY=your_secret_key
+MY_WHATSAPP_NUMBER=+91XXXXXXXXXX
+```
+
+## Troubleshooting
 
 ### Common Issues
 
-#### MySQL Connection Error
+#### Database Connection Error
 - Verify MySQL server is running
 - Check database credentials in settings.py
 - Ensure MySQL user has proper permissions
 
 #### WhatsApp Messages Not Sending
-- Verify Twilio credentials
-- Check WhatsApp sandbox setup
-- Ensure phone numbers are properly formatted
+- Ensure WhatsApp Web is logged in on Chrome
+- Check internet connection
+- Verify phone numbers are properly formatted
+- Check Chrome profile permissions
+
+#### Selenium Chrome Issues
+- Ensure Google Chrome is installed
+- Check Chrome profile directory permissions
+- Verify selenium package is installed
+- Check ChromeDriver compatibility
 
 #### Static Files Not Loading
 ```bash
@@ -248,59 +308,28 @@ python manage.py makemigrations --empty core
 python manage.py migrate --fake-initial
 ```
 
-## 📝 Development Notes
+## Batch Files
 
-### Project Structure
-```
-fees_management_system/
-├── core/                          # Main Django app
-│   ├── management/commands/       # Custom management commands
-│   ├── static/core/              # Static files (CSS, JS)
-│   ├── templates/core/           # HTML templates
-│   ├── models.py                 # Database models
-│   ├── views.py                  # View functions
-│   ├── urls.py                   # URL patterns
-│   └── forms.py                  # Django forms
-├── fees_management_system/        # Project settings
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
-```
+The project includes several batch files for Windows automation:
 
-### Key Components
-- **Neural Glass Theme**: Custom CSS with glassmorphism effects
-- **JavaScript Animations**: Particle backgrounds and interactions
-- **Django Models**: MySQL-compatible with proper relationships
-- **Twilio Integration**: WhatsApp messaging functionality
-- **PDF Generation**: ReportLab for receipt and report creation
+- `start_dashboard_only.bat` - Start Django dashboard only
+- `start_installment_reminders.bat` - Send installment reminders
+- `start_mysql.bat` - Start MySQL server
+- `quick_data_check.bat` - Quick data validation
+- `scheduled_maintenance.bat` - Scheduled maintenance tasks
 
-## 🤝 Contributing
+## License
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+This project is created for educational purposes for Pillay Sir's ICSE Classes.
 
-## 📄 License
+## Support
 
-This project is created for educational purposes. Please ensure you have proper licenses for any third-party services used (Twilio, etc.).
-
-## 🆘 Support
-
-For support and questions:
+For technical support:
 1. Check the troubleshooting section
-2. Review Django and Twilio documentation
-3. Create an issue in the repository
-
-## 🎉 Acknowledgments
-
-- **Neural Glass Theme**: Inspired by modern glassmorphism design trends
-- **Django Community**: For the excellent web framework
-- **Twilio**: For WhatsApp API integration
-- **Bootstrap**: For responsive UI components
+2. Review Django documentation
+3. Check Selenium WebDriver documentation
+4. Verify MySQL connection settings
 
 ---
 
-**Made with ❤️ for Pillay Sir's ICSE Classes**
-
-*Ready-to-run fees management system with beautiful Neural Glass UI and WhatsApp integration!*
+**Fees Management System for Pillay Sir's ICSE Classes**

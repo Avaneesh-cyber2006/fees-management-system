@@ -476,9 +476,9 @@ class WhatsAppServiceTests(TestCase):
     def test_send_admin_summary_wrapped_in_try_except(self):
         from core.whatsapp_service import send_admin_summary
         # Should not raise any exception - uses send_whatsapp_message under the hood
-        # which will fail gracefully since we don't have pywhatkit in test
+        # which will fail gracefully since we don't have selenium fully configured in test
         result = send_admin_summary("Test summary message")
-        # Without pywhatkit, it returns a failure result, not an exception
+        # Without selenium configured, it returns a failure result, not an exception
         self.assertFalse(result.success)
         self.assertIsNotNone(result.error)
 
